@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
+import { Menu, X, ArrowLeft } from "lucide-react";
 import { DashboardSidebar } from "@/shared/components/DashboardSidebar";
 import { dashboardNav } from "@/shared/config/navigation";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
 
 export function DashboardLayout() {
   const navigate = useNavigate();
@@ -12,36 +11,48 @@ export function DashboardLayout() {
   const [mobileSidebar, setMobileSidebar] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-[#f7f8fa]">
       <DashboardSidebar />
 
       {/* Mobile sidebar overlay */}
       {mobileSidebar && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
-            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileSidebar(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-56 bg-background border-r border-border animate-slide-in-left">
-            <nav className="p-3 space-y-1 pt-20">
+          <div className="absolute left-0 top-0 bottom-0 w-[220px] bg-white border-r border-border shadow-2xl animate-slide-in-left flex flex-col">
+            {/* Mobile brand */}
+            <div className="flex h-[60px] items-center gap-2.5 border-b border-border px-5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#0d1428]">
+                <svg width="13" height="13" viewBox="0 0 32 32" fill="none">
+                  <path d="M8 8L14.5 22L16 18.5L11.5 8H8Z" fill="#dc2626"/>
+                  <path d="M24 8L17.5 22L16 18.5L20.5 8H24Z" fill="white" fillOpacity="0.9"/>
+                </svg>
+              </div>
+              <span className="text-[13px] font-semibold">Venturizer</span>
+              <button
+                className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:bg-secondary"
+                onClick={() => setMobileSidebar(false)}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <nav className="flex-1 px-3 py-4 space-y-0.5">
               {dashboardNav.map((item) => {
                 const isActive =
                   item.href === "/dashboard"
                     ? location.pathname === "/dashboard"
                     : location.pathname.startsWith(item.href);
-
                 return (
                   <button
                     key={item.href}
-                    onClick={() => {
-                      navigate(item.href);
-                      setMobileSidebar(false);
-                    }}
+                    onClick={() => { navigate(item.href); setMobileSidebar(false); }}
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                      'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
                       isActive
-                        ? "bg-secondary text-foreground font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                        ? 'bg-[#0d1428] text-white'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -50,14 +61,22 @@ export function DashboardLayout() {
                 );
               })}
             </nav>
+            <div className="border-t border-border px-3 py-4">
+              <Link to="/" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground px-3 py-2">
+                <ArrowLeft className="h-3 w-3" />
+                Back to site
+              </Link>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 sm:px-6">
+      {/* Main content */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 flex h-[60px] items-center gap-4 border-b border-border bg-white px-4 sm:px-6">
           <button
-            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="lg:hidden inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
             onClick={() => setMobileSidebar(true)}
             aria-label="Open sidebar"
           >
@@ -66,16 +85,17 @@ export function DashboardLayout() {
 
           <div className="flex-1" />
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/")}
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg px-3 py-1.5 hover:bg-secondary"
           >
-            Exit Dashboard
-          </Button>
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Exit Dashboard</span>
+          </button>
         </header>
 
-        <div className="flex-1 px-4 sm:px-6 py-8">
+        <div className="flex-1 px-4 sm:px-6 py-8 max-w-[1400px] w-full mx-auto">
           <Outlet />
         </div>
       </div>

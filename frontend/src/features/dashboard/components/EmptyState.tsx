@@ -1,8 +1,7 @@
 import type { LucideIcon } from "lucide-react";
-import { Inbox } from "lucide-react";
 
 interface EmptyStateProps {
-  icon?: LucideIcon;
+  icon: LucideIcon;
   title: string;
   description: string;
   action?: {
@@ -11,19 +10,19 @@ interface EmptyStateProps {
   };
 }
 
-export function EmptyState({ icon: Icon = Inbox, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <Icon className="h-10 w-10 text-muted-foreground/30 mb-4" />
-      <p className="text-sm font-medium text-foreground mb-1">{title}</p>
-      <p className="text-sm text-muted-foreground max-w-xs text-balance">
-        {description}
-      </p>
+    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f7f8fa] border border-border">
+        <Icon className="h-6 w-6 text-muted-foreground/50" aria-hidden />
+      </div>
+      <h3 className="text-[15px] font-semibold text-[#0d1428] mb-2">{title}</h3>
+      <p className="text-[13px] text-muted-foreground max-w-sm leading-relaxed">{description}</p>
       {action && (
         <button
           type="button"
           onClick={action.onClick}
-          className="mt-4 text-sm text-accent hover:text-accent/80 transition-colors font-medium"
+          className="mt-6 rounded-xl bg-[#0d1428] px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-[#1a2540] transition-colors"
         >
           {action.label}
         </button>

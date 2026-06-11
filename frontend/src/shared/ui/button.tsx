@@ -4,24 +4,27 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/shared/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0d1428] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        default:
+          "bg-[#0d1428] text-white shadow-sm hover:bg-[#1a2540] hover:shadow-md",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-[#dc2626] text-white shadow-sm hover:bg-[#b91c1c]",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent/10 hover:text-accent",
+          "border border-border bg-white text-foreground shadow-sm hover:bg-secondary hover:border-foreground/20",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent/10 hover:text-accent",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+        ghost:
+          "text-muted-foreground hover:text-foreground hover:bg-secondary",
+        link:
+          "text-[#dc2626] underline-offset-4 hover:underline p-0 h-auto shadow-none active:scale-100",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
+        default: "h-9 px-4",
+        sm: "h-8 rounded-lg px-3 text-xs",
+        lg: "h-11 px-6 text-[15px]",
         icon: "h-9 w-9",
       },
     },

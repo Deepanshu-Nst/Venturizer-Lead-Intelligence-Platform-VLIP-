@@ -3,7 +3,7 @@ import { formatDate } from "@/shared/lib/utils";
 import { TableSkeleton } from "./LoadingSkeleton";
 import { EmptyState } from "./EmptyState";
 import { Pagination } from "./Pagination";
-import { Users, ArrowUpDown } from "lucide-react";
+import { Users, ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 
 interface LeadTableProps {
   leads: LeadSummary[];
@@ -18,16 +18,16 @@ interface LeadTableProps {
   onSelect: (lead: LeadSummary) => void;
 }
 
-const bucketStyles: Record<string, string> = {
-  hot: "bg-red-50 text-red-700 border-red-200",
-  good: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  maybe: "bg-amber-50 text-amber-700 border-amber-200",
-  low: "bg-slate-50 text-slate-500 border-slate-200",
+const bucketConfig: Record<string, { label: string; className: string; dotColor: string }> = {
+  hot: { label: 'Hot', className: 'bg-red-50 text-red-700 border-red-200', dotColor: 'bg-red-500' },
+  good: { label: 'Good', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dotColor: 'bg-emerald-500' },
+  maybe: { label: 'Maybe', className: 'bg-amber-50 text-amber-700 border-amber-200', dotColor: 'bg-amber-500' },
+  low: { label: 'Low', className: 'bg-slate-50 text-slate-500 border-slate-200', dotColor: 'bg-slate-400' },
 };
 
-const typeStyles: Record<string, string> = {
-  founder: "bg-foreground/5 text-foreground border-foreground/10",
-  investor: "bg-foreground/5 text-foreground border-foreground/10",
+const typeConfig: Record<string, { className: string }> = {
+  founder: { className: 'bg-[#0d1428]/5 text-[#0d1428] border-[#0d1428]/10' },
+  investor: { className: 'bg-blue-50 text-blue-700 border-blue-200' },
 };
 
 export function LeadTable({
@@ -44,15 +44,17 @@ export function LeadTable({
 }: LeadTableProps) {
   if (loading) {
     return (
-      <div className="rounded-lg border border-border p-5">
-        <TableSkeleton />
+      <div className="card-premium overflow-hidden">
+        <div className="p-5">
+          <TableSkeleton />
+        </div>
       </div>
     );
   }
 
   if (leads.length === 0) {
     return (
-      <div className="rounded-lg border border-border">
+      <div className="card-premium">
         <EmptyState
           icon={Users}
           title="No leads found"
@@ -70,82 +72,82 @@ export function LeadTable({
     filters.sortBy === field ? (filters.sortOrder === "asc" ? "asc" : "desc") : null;
 
   return (
-    <div className="rounded-lg border border-border">
+    <div className="card-premium overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <Th
-                label="Name"
-                field="full_name"
-                sortDir={sortDir("full_name")}
-                onSort={onSort}
-              />
-              <th scope="col" className="text-left font-medium text-muted-foreground pb-3 pr-4 whitespace-nowrap">
-                Type
-              </th>
-              <th scope="col" className="text-left font-medium text-muted-foreground pb-3 pr-4 whitespace-nowrap">
-                Status
-              </th>
-              <Th
-                label="Score"
-                field="score"
-                sortDir={sortDir("score")}
-                onSort={onSort}
-              />
-              <Th
-                label="Created"
-                field="created_at"
-                sortDir={sortDir("created_at")}
-                onSort={onSort}
-              />
+              <Th label="Name" field="full_name" sortDir={sortDir('full_name')} onSort={onSort} first />
+              <Th label="Type" field={null} sortDir={null} onSort={onSort} />
+              <Th label="Status" field={null} sortDir={null} onSort={onSort} />
+              <Th label="Score" field="score" sortDir={sortDir('score')} onSort={onSort} />
+              <Th label="Created" field="created_at" sortDir={sortDir('created_at')} onSort={onSort} />
             </tr>
           </thead>
           <tbody>
-            {leads.map((lead) => (
+            {leads.map((lead, idx) => (
               <tr
                 key={lead.id}
-                className="border-b border-border/50 hover:bg-secondary/40 cursor-pointer transition-colors"
+                className="border-b border-border/50 hover:bg-[#f7f8fa] cursor-pointer transition-colors group"
                 onClick={() => onSelect(lead)}
+                style={{ animationDelay: `${idx * 20}ms` }}
               >
-                <td className="py-3 pr-4">
-                  <div>
-                    <span className="font-medium text-foreground">
-                      {lead.full_name}
-                    </span>
-                    <span className="block text-xs text-muted-foreground/60 mt-0.5">
-                      {lead.email}
-                    </span>
+                {/* Name + Email */}
+                <td className="py-3.5 pl-5 pr-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#0d1428] text-white text-[11px] font-bold">
+                      {(lead.full_name || '?')[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-semibold text-[#0d1428] leading-none">{lead.full_name}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{lead.email}</p>
+                    </div>
                   </div>
                 </td>
-                <td className="py-3 pr-4">
-                  <span
-                    className={`inline-block rounded-md border px-2 py-0.5 text-xs font-medium capitalize ${
-                      typeStyles[lead.type] ?? ""
-                    }`}
-                  >
+
+                {/* Type badge */}
+                <td className="py-3.5 pr-4">
+                  <span className={`v-badge capitalize ${typeConfig[lead.type]?.className ?? ''}`}>
                     {lead.type}
                   </span>
                 </td>
-                <td className="py-3 pr-4">
-                  <span className="text-xs text-muted-foreground capitalize">
-                    {lead.status}
-                  </span>
+
+                {/* Status */}
+                <td className="py-3.5 pr-4">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`h-1.5 w-1.5 rounded-full ${
+                      lead.status === 'new' ? 'bg-blue-400' :
+                      lead.status === 'qualified' ? 'bg-emerald-400' :
+                      lead.status === 'rejected' ? 'bg-red-400' :
+                      'bg-amber-400'
+                    }`} />
+                    <span className="text-[12px] text-muted-foreground capitalize">{lead.status}</span>
+                  </div>
                 </td>
-                <td className="py-3 pr-4">
+
+                {/* Score */}
+                <td className="py-3.5 pr-4">
                   {lead.score !== null ? (
-                    <span
-                      className={`inline-block rounded-md border px-2 py-0.5 text-xs font-medium tabular-nums ${
-                        bucketStyles[lead.score_bucket ?? ""] ?? ""
-                      }`}
-                    >
-                      {lead.score}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold border ${
+                        bucketConfig[lead.score_bucket ?? '']?.className ?? 'bg-muted text-muted-foreground border-border'
+                      }`}>
+                        {lead.score}
+                      </div>
+                      {lead.score_bucket && (
+                        <span className={`v-badge hidden sm:inline-flex ${bucketConfig[lead.score_bucket]?.className ?? ''}`}>
+                          <span className={`mr-1 h-1 w-1 rounded-full ${bucketConfig[lead.score_bucket]?.dotColor}`} />
+                          {bucketConfig[lead.score_bucket]?.label}
+                        </span>
+                      )}
+                    </div>
                   ) : (
-                    <span className="text-muted-foreground/40">&mdash;</span>
+                    <span className="text-[12px] text-muted-foreground/30">&mdash;</span>
                   )}
                 </td>
-                <td className="py-3 text-muted-foreground text-xs whitespace-nowrap">
+
+                {/* Date */}
+                <td className="py-3.5 pr-5 text-[12px] text-muted-foreground whitespace-nowrap">
                   {formatDate(lead.created_at)}
                 </td>
               </tr>
@@ -154,7 +156,7 @@ export function LeadTable({
         </table>
       </div>
 
-      <div className="px-5 pb-4">
+      <div className="px-5 py-3 border-t border-border">
         <Pagination
           page={page}
           totalPages={totalPages}
@@ -172,28 +174,34 @@ function Th({
   field,
   sortDir,
   onSort,
+  first,
 }: {
   label: string;
-  field: NonNullable<LeadFilters["sortBy"]>;
-  sortDir: "asc" | "desc" | null;
+  field: NonNullable<LeadFilters["sortBy"]> | null;
+  sortDir: 'asc' | 'desc' | null;
   onSort: (field: NonNullable<LeadFilters["sortBy"]>) => void;
+  first?: boolean;
 }) {
-  const ariaSort = sortDir === "asc" ? "ascending" : sortDir === "desc" ? "descending" : undefined;
+  const ariaSort = sortDir === 'asc' ? 'ascending' : sortDir === 'desc' ? 'descending' : undefined;
+
   return (
     <th
       scope="col"
       aria-sort={ariaSort}
-      className="text-left font-medium text-muted-foreground pb-3 pr-4 cursor-pointer hover:text-foreground transition-colors select-none whitespace-nowrap"
-      onClick={() => onSort(field)}
+      className={`text-left py-3 pr-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-[#f7f8fa] select-none whitespace-nowrap ${
+        first ? 'pl-5' : ''
+      } ${field ? 'cursor-pointer hover:text-foreground transition-colors' : ''}`}
+      onClick={field ? () => onSort(field) : undefined}
     >
       <span className="inline-flex items-center gap-1">
         {label}
-        <ArrowUpDown
-          className={`h-3 w-3 transition-colors ${
-            sortDir ? "text-foreground" : "text-muted-foreground/30"
-          }`}
-          aria-hidden
-        />
+        {field && (
+          <span className="text-muted-foreground/40">
+            {sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-foreground" /> :
+             sortDir === 'desc' ? <ArrowDown className="h-3 w-3 text-foreground" /> :
+             <ChevronsUpDown className="h-3 w-3" />}
+          </span>
+        )}
       </span>
     </th>
   );

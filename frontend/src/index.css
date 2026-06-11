@@ -1,78 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Venturizer Brand Palette */
     --background: 0 0% 100%;
-    --foreground: 0 0% 4%;
+    --foreground: 222 47% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 4%;
+    --card-foreground: 222 47% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 4%;
-    --primary: 0 0% 4%;
+    --popover-foreground: 222 47% 8%;
+    --primary: 222 47% 8%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 4%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 84% 56%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 8%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    /* Vivid red accent — Venturizer brand */
+    --accent: 0 72% 51%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 4%;
-    --radius: 0.375rem;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 222 47% 8%;
+    --radius: 0.5rem;
+
+    /* Venturizer-specific tokens */
+    --navy: 222 47% 11%;
+    --navy-dark: 228 39% 7%;
+    --surface: 220 14% 97%;
+    --surface-raised: 0 0% 100%;
   }
 
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  ::selection {
+    background: hsl(var(--accent) / 0.15);
+    color: hsl(var(--foreground));
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+}
+
+@layer components {
+  /* Premium card style */
+  .card-premium {
+    @apply rounded-xl border border-border bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.03)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)];
+  }
+
+  /* Stat card */
+  .stat-card {
+    @apply card-premium p-5;
+  }
+
+  /* Section label */
+  .section-label {
+    @apply text-[11px] font-semibold uppercase tracking-widest text-muted-foreground;
+  }
+
+  /* Venturizer badge base */
+  .v-badge {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium border;
+  }
+
+  /* Score ring */
+  .score-ring {
+    @apply flex items-center justify-center rounded-full font-bold tabular-nums;
   }
 }
 
 @layer utilities {
+  /* ── Core animations ── */
   .animate-fade-in {
-    animation: fade-in 0.4s ease-out;
+    animation: fade-in 0.35s ease-out both;
   }
 
   .animate-fade-up {
-    animation: fade-up 0.5s ease-out;
+    animation: fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .animate-slide-in-right {
-    animation: slide-in-right 0.25s ease-out;
+    animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .animate-slide-in-left {
-    animation: slide-in-left 0.25s ease-out;
+    animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .text-balance {
-    text-wrap: balance;
+  .animate-scale-in {
+    animation: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   /* ── Chatbot animations ── */
   .animate-chat-bubble {
-    animation: chat-bubble 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation: chat-bubble 0.28s cubic-bezier(0.34, 1.4, 0.64, 1) both;
   }
 
   .animate-typing-dot {
-    animation: typing-dot 1.2s ease-in-out infinite both;
+    animation: typing-dot 1.4s ease-in-out infinite both;
   }
 
   .animate-pulse-ring {
-    animation: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse-ring 2.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* ── Utility classes ── */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(0 72% 38%) 100%);
+  }
+
+  .bg-navy {
+    background-color: hsl(var(--navy));
+  }
+
+  .bg-navy-dark {
+    background-color: hsl(var(--navy-dark));
+  }
+
+  /* ── Score bucket colors ── */
+  .bucket-hot {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  .bucket-good {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+  .bucket-maybe {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+  .bucket-low {
+    @apply bg-slate-50 text-slate-500 border-slate-200;
   }
 }
 
-/* ── Chatbot keyframes ── */
+/* ── Keyframes ── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 @keyframes chat-bubble {
   from {
     opacity: 0;
@@ -87,7 +221,7 @@
 @keyframes typing-dot {
   0%, 60%, 100% {
     transform: translateY(0);
-    opacity: 0.4;
+    opacity: 0.35;
   }
   30% {
     transform: translateY(-4px);
@@ -96,12 +230,8 @@
 }
 
 @keyframes pulse-ring {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(0, 0, 0, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.3); }
+  50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
 }
 
 /* ── Chatbot input wrapper — adapts light inputs for dark panel ── */
@@ -115,62 +245,49 @@
 }
 
 .chatbot-input-wrapper select option {
-  background: #1a1a1a;
+  background: #1a1f2e;
   color: rgba(255, 255, 255, 0.85);
 }
 
 .chatbot-input-wrapper input::placeholder,
 .chatbot-input-wrapper textarea::placeholder {
-  color: rgba(255, 255, 255, 0.25) !important;
+  color: rgba(255, 255, 255, 0.22) !important;
 }
 
 .chatbot-input-wrapper input:focus,
 .chatbot-input-wrapper select:focus,
 .chatbot-input-wrapper textarea:focus {
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
   outline: none;
 }
 
-/* Boolean & multiselect buttons inside chatbot */
 .chatbot-input-wrapper button {
-  border-color: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .chatbot-input-wrapper button:hover {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.25);
   color: white;
   background: rgba(255, 255, 255, 0.06);
 }
 
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slide-in-right {
-  from { transform: translateX(24px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slide-in-left {
-  from { transform: translateX(-24px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
   .animate-fade-up,
   .animate-slide-in-right,
-  .animate-slide-in-left {
+  .animate-slide-in-left,
+  .animate-scale-in,
+  .animate-chat-bubble {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  .animate-typing-dot,
+  .animate-pulse-ring {
+    animation: none !important;
   }
 
   *,

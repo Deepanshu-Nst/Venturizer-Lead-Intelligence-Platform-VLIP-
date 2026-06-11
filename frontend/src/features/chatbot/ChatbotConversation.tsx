@@ -8,30 +8,28 @@ import { ChatbotInputArea } from "./ChatbotInputArea";
 import type { FlowType } from "@/features/qualification/types";
 import type { ValidationError } from "@/features/qualification/types";
 
-type MessageRole = "bot" | "user";
+type MessageRole = 'bot' | 'user';
 
 interface ChatMessage {
   id: string;
   role: MessageRole;
   content: string;
-  questionId?: string;
 }
 
 const BOT_INTRO = "Hi there 👋 I'm the Venturizer Qualification Assistant. I'll guide you through a quick set of questions to match you with the right opportunities.\n\nAre you a **Founder** or an **Investor**?";
 
 const BOT_FLOW_GREETINGS: Record<FlowType, string> = {
-  founder: "Great! Let's qualify your startup. I'll ask you about 18 questions — it takes about 5 minutes. Let's go 🚀",
-  investor: "Perfect! I'll ask you about 17 questions to understand your investment thesis. Let's begin 📈",
+  founder: "Great! Let's qualify your startup. I'll ask ~18 questions — takes about 5 minutes. Let's go 🚀",
+  investor: "Perfect! I'll walk you through ~17 questions to understand your investment thesis. Let's begin 📈",
 };
 
 function formatAnswerForDisplay(value: unknown): string {
-  if (value === null || value === undefined || value === "") return "";
-  if (typeof value === "boolean") return value ? "Yes" : "No";
-  if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "number") return String(value);
-  if (typeof value === "string") {
-    // File IDs — show "PDF uploaded" instead of the UUID
-    if (/^[0-9a-f-]{36}$/.test(value)) return "📎 PDF uploaded";
+  if (value === null || value === undefined || value === '') return '';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (Array.isArray(value)) return value.join(', ');
+  if (typeof value === 'number') return String(value);
+  if (typeof value === 'string') {
+    if (/^[0-9a-f-]{36}$/.test(value)) return '📎 PDF uploaded';
     return value;
   }
   return String(value);
@@ -60,18 +58,14 @@ export function ChatbotConversation() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSubmittingRef = useRef(false);
 
-  const addBotMessage = useCallback((content: string, delayMs = 600): Promise<void> => {
+  const addBotMessage = useCallback((content: string, delayMs = 650): Promise<void> => {
     return new Promise((resolve) => {
       setIsTyping(true);
       setTimeout(() => {
         setIsTyping(false);
         setMessages((prev) => [
           ...prev,
-          {
-            id: `bot-${Date.now()}-${Math.random()}`,
-            role: "bot",
-            content,
-          },
+          { id: `bot-${Date.now()}-${Math.random()}`, role: 'bot', content },
         ]);
         resolve();
       }, delayMs);
@@ -81,158 +75,113 @@ export function ChatbotConversation() {
   const addUserMessage = useCallback((content: string) => {
     setMessages((prev) => [
       ...prev,
-      {
-        id: `user-${Date.now()}-${Math.random()}`,
-        role: "user",
-        content,
-      },
+      { id: `user-${Date.now()}-${Math.random()}`, role: 'user', content },
     ]);
   }, []);
 
-  // Initialize chat — show intro + handle existing session
+  // Initialize
   useEffect(() => {
     if (initialized) return;
     setInitialized(true);
-
     const savedSession = loadSession();
-
     if (savedSession && state.flowType && state.questions.length > 0) {
-      // Resuming a session — rebuild transcript up to current question
       const introMessages: ChatMessage[] = [
-        {
-          id: "bot-intro",
-          role: "bot",
-          content: "Welcome back 👋 I've restored your progress. Let's continue from where you left off.",
-        },
+        { id: 'bot-intro', role: 'bot', content: "Welcome back 👋 I've restored your progress. Let's continue from where you left off." },
       ];
-      // Add answered questions as transcript
       for (let i = 0; i < state.currentIndex; i++) {
         const q = state.questions[i];
         if (!q) continue;
         const val = state.answers[q.id];
         const displayVal = formatAnswerForDisplay(val);
-        introMessages.push({ id: `bot-q-${q.id}`, role: "bot", content: q.question });
-        if (displayVal) {
-          introMessages.push({ id: `user-a-${q.id}`, role: "user", content: displayVal });
-        }
+        introMessages.push({ id: `bot-q-${q.id}`, role: 'bot', content: q.question });
+        if (displayVal) introMessages.push({ id: `user-a-${q.id}`, role: 'user', content: displayVal });
       }
       setMessages(introMessages);
-      // Then show current question
       const currentQ = state.questions[state.currentIndex];
       if (currentQ) {
         setIsTyping(true);
         setTimeout(() => {
           setIsTyping(false);
-          setMessages((prev) => [
-            ...prev,
-            { id: `bot-current`, role: "bot", content: currentQ.question },
-          ]);
-        }, 800);
+          setMessages((prev) => [...prev, { id: 'bot-current', role: 'bot', content: currentQ.question }]);
+        }, 900);
       }
     } else {
-      // Fresh start
       addBotMessage(BOT_INTRO, 500);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // When flow is selected (not from resume)
   const prevFlowType = useRef<FlowType | null>(null);
   useEffect(() => {
     if (!state.flowType || state.flowType === prevFlowType.current) return;
     if (initialized && prevFlowType.current === null && !loadSession()) {
-      // Flow was freshly selected
       const greeting = BOT_FLOW_GREETINGS[state.flowType];
       addBotMessage(greeting, 400).then(() => {
         const firstQ = state.questions[0];
-        if (firstQ) {
-          addBotMessage(firstQ.question, 800);
-        }
+        if (firstQ) addBotMessage(firstQ.question, 900);
       });
     }
     prevFlowType.current = state.flowType;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.flowType]);
 
-  // Auto-scroll to bottom when messages or typing changes
+  // Auto-scroll
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    requestAnimationFrame(() => {
-      el.scrollTop = el.scrollHeight;
-    });
+    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
   }, [messages, isTyping]);
 
-  const handleSelectFlow = useCallback(
-    (flowType: FlowType) => {
-      const label = flowType === "founder" ? "Founder" : "Investor";
-      addUserMessage(label);
-      setFieldError(null);
-      selectFlow(flowType);
-    },
-    [addUserMessage, selectFlow]
-  );
+  const handleSelectFlow = useCallback((flowType: FlowType) => {
+    addUserMessage(flowType === 'founder' ? 'Founder' : 'Investor');
+    setFieldError(null);
+    selectFlow(flowType);
+  }, [addUserMessage, selectFlow]);
 
-  const handleAnswer = useCallback(
-    (value: unknown) => {
-      if (!state.questions[state.currentIndex]) return;
-      const currentQuestion = state.questions[state.currentIndex]!;
-      const error = validateField(currentQuestion, value);
-      setFieldError(error);
-      answer(currentQuestion.id, value);
-    },
-    [state.questions, state.currentIndex, answer]
-  );
+  const handleAnswer = useCallback((value: unknown) => {
+    if (!state.questions[state.currentIndex]) return;
+    const currentQuestion = state.questions[state.currentIndex]!;
+    const error = validateField(currentQuestion, value);
+    setFieldError(error);
+    answer(currentQuestion.id, value);
+  }, [state.questions, state.currentIndex, answer]);
 
   const handleSubmit = useCallback(async () => {
     const currentQuestion = state.questions[state.currentIndex];
-    if (!currentQuestion) return;
-    if (isSubmittingRef.current) return;
+    if (!currentQuestion || isSubmittingRef.current) return;
 
     const currentValue = state.answers[currentQuestion.id];
     const error = validateField(currentQuestion, currentValue);
-    if (error) {
-      setFieldError(error);
-      return;
-    }
+    if (error) { setFieldError(error); return; }
     setFieldError(null);
 
-    const isLastQuestion = state.currentIndex >= state.questions.length - 1;
-
-    // Show user answer as bubble
     const displayVal = formatAnswerForDisplay(currentValue);
-    if (displayVal) {
-      addUserMessage(displayVal);
-    }
+    if (displayVal) addUserMessage(displayVal);
+
+    const isLastQuestion = state.currentIndex >= state.questions.length - 1;
 
     if (isLastQuestion) {
       isSubmittingRef.current = true;
       setIsSubmitting(true);
       submitStart();
-
-      await addBotMessage("Perfect! Submitting your qualification now... ⏳", 400);
+      await addBotMessage('Perfect! Submitting your qualification now… ⏳', 400);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       try {
-        const body: Record<string, unknown> = {
-          type: state.flowType,
-          answers: state.answers,
-        };
-        if (state.sessionId) {
-          body.sessionId = state.sessionId;
-        }
+        const body: Record<string, unknown> = { type: state.flowType, answers: state.answers };
+        if (state.sessionId) body.sessionId = state.sessionId;
 
-        const res = await fetch("/api/v1/lead/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const res = await fetch('/api/v1/lead/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error?.message ?? "Submission failed");
+        if (!res.ok) throw new Error(json.error?.message ?? 'Submission failed');
 
         isSubmittingRef.current = false;
         setIsSubmitting(false);
@@ -241,75 +190,50 @@ export function ChatbotConversation() {
         const score = json.data.score as number;
         const bucket = json.data.bucket as string;
         const bucketLabel =
-          bucket === "hot" ? "🔥 Hot Lead" :
-          bucket === "good" ? "✅ Good Fit" :
-          bucket === "maybe" ? "📋 Worth Reviewing" : "📌 Low Priority";
+          bucket === 'hot' ? '🔥 Hot Lead' :
+          bucket === 'good' ? '✅ Good Fit' :
+          bucket === 'maybe' ? '📋 Worth Reviewing' : '📌 Low Priority';
 
         await addBotMessage(
           `✅ **Qualification complete!**\n\nYour qualification score is **${score}/100** — ${bucketLabel}.\n\nOur team will review your submission and get back to you within 48 hours. Thank you for connecting with Venturizer.`,
-          600
+          700
         );
       } catch (err) {
         clearTimeout(timeoutId);
         isSubmittingRef.current = false;
         setIsSubmitting(false);
-        const message = err instanceof Error ? err.message : "Something went wrong";
+        const message = err instanceof Error ? err.message : 'Something went wrong';
         dispatchSubmitError(message);
         clearSubmitError();
         await addBotMessage(
-          `❌ Submission failed: ${message}\n\nYour answers have been saved. Click the button below to retry.`,
+          `❌ Submission failed: ${message}\n\nYour answers have been saved. You can retry below.`,
           400
         );
       }
       return;
     }
 
-    // Not last question — advance
     goNext();
-
-    // Show next question as bot message
-    const nextIndex = state.currentIndex + 1;
-    const nextQuestion = state.questions[nextIndex];
-    if (nextQuestion) {
-      await addBotMessage(nextQuestion.question, 700);
-    }
-  }, [
-    state,
-    addUserMessage,
-    addBotMessage,
-    submitStart,
-    submitDone,
-    dispatchSubmitError,
-    clearSubmitError,
-    goNext,
-  ]);
+    const nextQuestion = state.questions[state.currentIndex + 1];
+    if (nextQuestion) await addBotMessage(nextQuestion.question, 750);
+  }, [state, addUserMessage, addBotMessage, submitStart, submitDone, dispatchSubmitError, clearSubmitError, goNext]);
 
   const handleBack = useCallback(() => {
     if (state.currentIndex === 0) return;
     setFieldError(null);
     goBack();
-
-    // Remove last user message from transcript
     setMessages((prev) => {
-      const lastUserIdx = [...prev].reverse().findIndex((m) => m.role === "user");
+      const lastUserIdx = [...prev].reverse().findIndex((m) => m.role === 'user');
       if (lastUserIdx === -1) return prev;
-      const idxToRemove = prev.length - 1 - lastUserIdx;
-      return prev.filter((_, i) => i !== idxToRemove);
+      return prev.filter((_, i) => i !== prev.length - 1 - lastUserIdx);
     });
-
-    // Remove last bot question and re-show previous
     setMessages((prev) => {
-      const lastBotIdx = [...prev].reverse().findIndex((m) => m.role === "bot");
+      const lastBotIdx = [...prev].reverse().findIndex((m) => m.role === 'bot');
       if (lastBotIdx === -1) return prev;
-      const idxToRemove = prev.length - 1 - lastBotIdx;
-      return prev.filter((_, i) => i !== idxToRemove);
+      return prev.filter((_, i) => i !== prev.length - 1 - lastBotIdx);
     });
-
-    // Show prev question as new bot message
     const prevQuestion = state.questions[state.currentIndex - 1];
-    if (prevQuestion) {
-      addBotMessage(prevQuestion.question, 300);
-    }
+    if (prevQuestion) addBotMessage(prevQuestion.question, 300);
   }, [state, goBack, addBotMessage]);
 
   const handleReset = useCallback(() => {
@@ -326,10 +250,7 @@ export function ChatbotConversation() {
   const currentValue = currentQuestion ? state.answers[currentQuestion.id] : undefined;
   const isComplete = state.isComplete;
   const isLastQuestion = state.currentIndex >= state.questions.length - 1 && state.questions.length > 0;
-
-  // Show flow selection if no flow yet
   const showFlowSelector = !state.flowType && !isComplete;
-  // Show input area if flow selected and not complete
   const showInputArea = !!state.flowType && !!currentQuestion && !isComplete;
 
   return (
@@ -337,8 +258,8 @@ export function ChatbotConversation() {
       {/* Scrollable transcript */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-3 scroll-smooth"
-        style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.08) transparent" }}
+        className="flex-1 overflow-y-auto px-4 py-5 space-y-3"
+        style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.07) transparent' }}
       >
         {messages.map((msg) => (
           <ChatbotMessage key={msg.id} role={msg.role} content={msg.content} />
@@ -348,72 +269,65 @@ export function ChatbotConversation() {
         {isTyping && (
           <div className="flex items-end gap-2.5" aria-live="polite" aria-label="Venturizer is typing">
             <div className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-white/10">
-              <span className="text-[10px] font-bold text-white/70">V</span>
+              <svg width="9" height="9" viewBox="0 0 32 32" fill="none">
+                <path d="M8 8L14.5 22L16 18.5L11.5 8H8Z" fill="#dc2626"/>
+                <path d="M24 8L17.5 22L16 18.5L20.5 8H24Z" fill="white" fillOpacity="0.9"/>
+              </svg>
             </div>
-            <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-white/[0.06] px-4 py-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-white/40 animate-typing-dot" style={{ animationDelay: "0ms" }} />
-              <span className="h-1.5 w-1.5 rounded-full bg-white/40 animate-typing-dot" style={{ animationDelay: "160ms" }} />
-              <span className="h-1.5 w-1.5 rounded-full bg-white/40 animate-typing-dot" style={{ animationDelay: "320ms" }} />
+            <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm bg-white/[0.08] border border-white/[0.06] px-4 py-3">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/50 animate-typing-dot" style={{ animationDelay: '0ms' }} />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/50 animate-typing-dot" style={{ animationDelay: '180ms' }} />
+              <span className="h-1.5 w-1.5 rounded-full bg-white/50 animate-typing-dot" style={{ animationDelay: '360ms' }} />
             </div>
           </div>
         )}
 
-        {/* Completion state */}
+        {/* Completion actions */}
         {isComplete && !isTyping && (
-          <div className="pt-2 flex gap-2">
+          <div className="pt-3 space-y-2">
             <button
               type="button"
-              onClick={handleReset}
-              className="flex-1 rounded-xl border border-white/10 py-2.5 text-xs font-medium text-white/60 hover:text-white hover:border-white/20 transition-colors"
+              onClick={() => navigate('/dashboard')}
+              className="w-full rounded-xl bg-white py-2.5 text-[13px] font-semibold text-[#0d1428] hover:bg-white/90 transition-colors"
             >
-              Start New Qualification
+              View Dashboard
             </button>
             <button
               type="button"
-              onClick={() => navigate("/dashboard")}
-              className="flex-1 rounded-xl bg-white/10 py-2.5 text-xs font-medium text-white hover:bg-white/20 transition-colors"
+              onClick={handleReset}
+              className="w-full rounded-xl border border-white/10 py-2.5 text-[13px] font-medium text-white/60 hover:text-white hover:border-white/20 transition-colors"
             >
-              View Dashboard
+              Start New Qualification
             </button>
           </div>
         )}
       </div>
 
-      {/* Flow selector — shown before flow is chosen */}
+      {/* Flow selector */}
       {showFlowSelector && !isTyping && (
-        <div className="flex-none px-4 pb-4">
-          <div className="grid grid-cols-2 gap-2">
-            <button
+        <div className="flex-none px-4 pb-5">
+          <p className="text-[11px] text-white/30 text-center mb-3">Choose your path to begin</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            <FlowCard
               id="chatbot-select-founder"
-              type="button"
-              onClick={() => handleSelectFlow("founder")}
-              className="group flex flex-col items-start gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 text-left transition-all hover:border-white/20 hover:bg-white/[0.07] active:scale-[0.98]"
-            >
-              <span className="text-base">🚀</span>
-              <span className="text-sm font-semibold text-white">Founder</span>
-              <span className="text-[11px] text-white/40 leading-relaxed">Raising capital for your startup</span>
-            </button>
-            <button
+              emoji="🚀"
+              label="Founder"
+              desc="Raising capital for your startup"
+              onClick={() => handleSelectFlow('founder')}
+            />
+            <FlowCard
               id="chatbot-select-investor"
-              type="button"
-              onClick={() => handleSelectFlow("investor")}
-              className="group flex flex-col items-start gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 text-left transition-all hover:border-white/20 hover:bg-white/[0.07] active:scale-[0.98]"
-            >
-              <span className="text-base">📈</span>
-              <span className="text-sm font-semibold text-white">Investor</span>
-              <span className="text-[11px] text-white/40 leading-relaxed">Seeking deal flow opportunities</span>
-            </button>
+              emoji="📈"
+              label="Investor"
+              desc="Seeking deal flow opportunities"
+              onClick={() => handleSelectFlow('investor')}
+            />
           </div>
-
-          {/* Resume session button */}
           {loadSession() && (
             <button
               type="button"
-              onClick={() => {
-                // Session is already loaded from the hook — just re-init transcript
-                setInitialized(false);
-              }}
-              className="mt-2 w-full text-center text-[11px] text-white/30 hover:text-white/60 transition-colors py-1"
+              onClick={() => setInitialized(false)}
+              className="mt-3 w-full text-center text-[11px] text-white/25 hover:text-white/60 transition-colors py-1"
             >
               ↩ Resume saved session
             </button>
@@ -421,7 +335,7 @@ export function ChatbotConversation() {
         </div>
       )}
 
-      {/* Input area — shown for each question */}
+      {/* Input area */}
       {showInputArea && !isTyping && (
         <ChatbotInputArea
           question={currentQuestion!}
@@ -433,9 +347,32 @@ export function ChatbotConversation() {
           disabled={isSubmitting}
           isLastQuestion={isLastQuestion}
           canGoBack={state.currentIndex > 0}
-          documentType={state.flowType === "founder" ? "pitch-deck" : "investment-thesis"}
+          documentType={state.flowType === 'founder' ? 'pitch-deck' : 'investment-thesis'}
         />
       )}
     </div>
+  );
+}
+
+function FlowCard({
+  id, emoji, label, desc, onClick
+}: {
+  id: string;
+  emoji: string;
+  label: string;
+  desc: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      id={id}
+      type="button"
+      onClick={onClick}
+      className="group flex flex-col items-start gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 text-left transition-all hover:border-white/[0.18] hover:bg-white/[0.07] active:scale-[0.97]"
+    >
+      <span className="text-[18px]">{emoji}</span>
+      <span className="text-[13px] font-bold text-white">{label}</span>
+      <span className="text-[11px] text-white/40 leading-relaxed">{desc}</span>
+    </button>
   );
 }
