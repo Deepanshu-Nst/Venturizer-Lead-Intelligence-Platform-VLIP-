@@ -28,4 +28,5 @@ export interface ScoreOutput {
   dimensions: ScoreDimension[];
   reasons: string[];
   recommendation: string;
+  explanation: string;
 }

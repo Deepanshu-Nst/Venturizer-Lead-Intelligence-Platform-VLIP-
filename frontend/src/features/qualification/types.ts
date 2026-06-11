@@ -96,7 +96,8 @@ export type MachineAction =
   | { type: "RESET" }
   | { type: "SUBMIT_START" }
   | { type: "SUBMIT_DONE"; sessionId: string }
-  | { type: "SUBMIT_ERROR"; error: string };
+  | { type: "SUBMIT_ERROR"; error: string }
+  | { type: "CLEAR_SUBMIT_ERROR" };
 
 export interface PersistedSession {
   flowType: FlowType;

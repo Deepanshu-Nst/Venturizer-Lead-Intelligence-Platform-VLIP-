@@ -1,4 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
+const API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
 
 export interface ApiError {
   code: string;
@@ -25,6 +26,9 @@ async function request<T>(
   const headers: Record<string, string> = {};
   if (hasBody(method)) {
     headers["Content-Type"] = "application/json";
+  }
+  if (API_KEY) {
+    headers["x-api-key"] = API_KEY;
   }
   Object.assign(headers, options.headers as Record<string, string>);
 

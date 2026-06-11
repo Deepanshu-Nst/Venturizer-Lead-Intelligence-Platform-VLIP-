@@ -32,14 +32,21 @@ export function LeadDetailPage() {
     if (!lead) return;
     setStatusUpdating(true);
     try {
-      await fetch(`/api/v1/dashboard/leads/${lead.id}/status`, {
+      const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
+      const res = await fetch(`/api/v1/dashboard/leads/${lead.id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(apiKey ? { "x-api-key": apiKey } : {}),
+        },
         body: JSON.stringify({ status: newStatus }),
       });
+      if (!res.ok) {
+        console.error("[LeadDetailPage] status update failed:", res.status, await res.text().catch(() => ""));
+      }
       refetch();
-    } catch {
-      // silently fail — will retry on next load
+    } catch (err) {
+      console.error("[LeadDetailPage] status update error:", err);
     } finally {
       setStatusUpdating(false);
     }

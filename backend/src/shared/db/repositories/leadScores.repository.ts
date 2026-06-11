@@ -1,4 +1,4 @@
-import { query } from "../pool.js";
+import { query, type PoolClient } from "../pool.js";
 import type { LeadScore, CreateLeadScoreInput } from "../../types/index.js";
 
 const SELECT = "SELECT * FROM lead_scores";
@@ -20,7 +20,7 @@ export async function create(input: CreateLeadScoreInput): Promise<LeadScore> {
   return result.rows[0];
 }
 
-export async function createMany(inputs: CreateLeadScoreInput[]): Promise<LeadScore[]> {
+export async function createMany(inputs: CreateLeadScoreInput[], client?: PoolClient): Promise<LeadScore[]> {
   if (inputs.length === 0) return [];
 
   const values: string[] = [];
@@ -37,11 +37,12 @@ export async function createMany(inputs: CreateLeadScoreInput[]): Promise<LeadSc
   const result = await query<LeadScore>(
     `INSERT INTO lead_scores (lead_id, dimension, score, weight, rationale)
      VALUES ${values.join(", ")} RETURNING *`,
-    params
+    params,
+    client
   );
   return result.rows;
 }
 
-export async function deleteByLeadId(leadId: string): Promise<void> {
-  await query("DELETE FROM lead_scores WHERE lead_id = $1", [leadId]);
+export async function deleteByLeadId(leadId: string, client?: PoolClient): Promise<void> {
+  await query("DELETE FROM lead_scores WHERE lead_id = $1", [leadId], client);
 }

@@ -142,6 +142,10 @@ function machineReducer(state: MachineState, action: MachineAction): MachineStat
       return { ...state, isSubmitting: false, submitError: action.error };
     }
 
+    case "CLEAR_SUBMIT_ERROR": {
+      return { ...state, isSubmitting: false, submitError: null };
+    }
+
     default:
       return state;
   }
@@ -206,6 +210,10 @@ export function useQualificationMachine() {
     dispatch({ type: "SUBMIT_ERROR", error });
   }, []);
 
+  const clearSubmitError = useCallback(() => {
+    dispatch({ type: "CLEAR_SUBMIT_ERROR" });
+  }, []);
+
   return {
     state,
     dispatch,
@@ -217,5 +225,6 @@ export function useQualificationMachine() {
     submitStart,
     submitDone,
     submitError,
+    clearSubmitError,
   };
 }

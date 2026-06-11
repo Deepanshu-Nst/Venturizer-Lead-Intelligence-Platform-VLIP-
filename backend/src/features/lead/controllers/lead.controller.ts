@@ -24,12 +24,23 @@ export function answer(req: Request, res: Response): void {
 
 export async function submit(req: Request, res: Response): Promise<void> {
   try {
-    const body = req.body as SubmitRequest;
-    const result = await leadService.submitFlow(body);
+    const payload = req.body as SubmitRequest;
+    console.log("Lead submit payload:", payload);
+    const result = await leadService.submitFlow(payload);
     res.status(201).json(success(result));
   } catch (err: unknown) {
-    const e = err as { statusCode?: number; message: string };
-    res.status(e.statusCode ?? 500).json(error("ERROR", e.message));
+    console.error("[lead.controller] submit error:", err);
+    const e = err as { statusCode?: number; message?: string; detail?: string; code?: string };
+    
+    // Check if it's a PostgreSQL constraint or type error
+    if (e.code && String(e.code).length === 5) {
+      res.status(400).json(error("BAD_REQUEST", `Database error: ${e.detail || e.message}`));
+      return;
+    }
+
+    const statusCode = typeof e.statusCode === "number" ? e.statusCode : 500;
+    const message = e.message ?? "Internal server error";
+    res.status(statusCode).json(error("ERROR", message));
   }
 }
 

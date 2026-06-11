@@ -7,10 +7,10 @@ export function generateQualificationSummary(lead: LeadDetail): QualificationSum
 
   if (lead.type === "founder") {
     analyzeFounderScores(lead.scores, strengths, concerns);
-    explanation = generateFounderExplanation(lead.scores, lead.score_bucket);
+    explanation = generateFounderExplanation(lead.score_bucket);
   } else {
     analyzeInvestorScores(lead.scores, strengths, concerns);
-    explanation = generateInvestorExplanation(lead.scores, lead.score_bucket);
+    explanation = generateInvestorExplanation(lead.score_bucket);
   }
 
   const recommendation = generateRecommendation(lead.score_bucket);
@@ -25,7 +25,7 @@ function analyzeFounderScores(
 ) {
   const scoreMap = toMap(scores);
 
-  const exp = scoreMap.founder_experience;
+  const exp = scoreMap.experience;
   if (exp) {
     if (exp.score >= exp.weight * 0.6) {
       strengths.push("Strong founding experience with relevant industry background");
@@ -34,12 +34,21 @@ function analyzeFounderScores(
     }
   }
 
-  const ind = scoreMap.industry_knowledge;
-  if (ind) {
-    if (ind.score >= ind.weight * 0.6) {
-      strengths.push("Deep understanding of the problem space and target customer");
-    } else if (ind.score < ind.weight * 0.4) {
-      concerns.push("Problem statement needs more clarity and specificity");
+  const fit = scoreMap.founder_market_fit;
+  if (fit) {
+    if (fit.score >= fit.weight * 0.6) {
+      strengths.push("Founder background closely aligns with the problem being solved");
+    } else if (fit.score < fit.weight * 0.4) {
+      concerns.push("Weak connection between founder background and market problem");
+    }
+  }
+
+  const pm = scoreMap.problem_market;
+  if (pm) {
+    if (pm.score >= pm.weight * 0.6) {
+      strengths.push("Clear problem articulation with well-defined market understanding");
+    } else if (pm.score < pm.weight * 0.4) {
+      concerns.push("Problem statement and market definition need more specificity");
     }
   }
 
@@ -55,13 +64,15 @@ function analyzeFounderScores(
   const trac = scoreMap.traction;
   if (trac) {
     if (trac.score >= trac.weight * 0.6) {
-      strengths.push("Early traction signals with growing user adoption and revenue");
+      strengths.push("Strong traction signals with growing user adoption and revenue");
+    } else if (trac.score >= trac.weight * 0.3) {
+      strengths.push("Early traction signals emerging in user adoption or revenue");
     } else {
       concerns.push("Limited traction data available to validate market demand");
     }
   }
 
-  const team = scoreMap.team_strength;
+  const team = scoreMap.team;
   if (team) {
     if (team.score >= team.weight * 0.6) {
       strengths.push("Well-structured team with co-founder dynamic");
@@ -70,17 +81,21 @@ function analyzeFounderScores(
     }
   }
 
-  const val = scoreMap.validation;
-  if (val && val.score < val.weight * 0.4) {
-    concerns.push("Market validation signals are still emerging");
-  }
-
   const fund = scoreMap.funding_readiness;
   if (fund) {
     if (fund.score >= fund.weight * 0.6) {
       strengths.push("Funding-ready with clear raise strategy and full-time commitment");
     } else if (fund.score < fund.weight * 0.4) {
       concerns.push("Funding strategy and commitment level need further evaluation");
+    }
+  }
+
+  const evidence = scoreMap.evidence_quality;
+  if (evidence) {
+    if (evidence.score >= evidence.weight * 0.6) {
+      strengths.push("High-quality answers with specific, detailed responses throughout");
+    } else if (evidence.score < evidence.weight * 0.4) {
+      concerns.push("Answers lack sufficient detail — more specificity needed");
     }
   }
 }
@@ -147,44 +162,34 @@ function analyzeInvestorScores(
   }
 }
 
-function generateFounderExplanation(
-  scores: ScoreDimension[],
-  bucket: ScoreBucket | null
-): string {
-  const total = scores.reduce((s, d) => s + d.score, 0);
-  const maxTotal = scores.reduce((s, d) => s + d.weight, 0);
-  const pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
-
-  if (bucket === "hot") {
-    return `Strong founder profile scoring ${pct}% overall. Strong product execution, traction signals, and team structure indicate high potential for funding success.`;
+function generateFounderExplanation(bucket: ScoreBucket | null): string {
+  switch (bucket) {
+    case "hot":
+      return "Strong venture-fit profile: deep domain expertise, clear problem articulation, and meaningful traction evidence aligned with market opportunity.";
+    case "good":
+      return "Promising founder with demonstrated competence and early execution progress. Foundational elements are in place but require further scaling validation.";
+    case "maybe":
+      return "Early-stage opportunity with emerging signals. Core hypothesis needs additional validation through customer development or product iteration.";
+    case "low":
+      return "Currently below investment readiness thresholds. Significant gaps in problem definition, market understanding, or execution evidence.";
+    default:
+      return "Awaiting qualification data.";
   }
-  if (bucket === "good") {
-    return `Solid founder profile at ${pct}% overall. Good fundamentals with clear progress, though some areas need further development to reach top-tier readiness.`;
-  }
-  if (bucket === "maybe") {
-    return `Moderate founder profile at ${pct}% overall. Early-stage signals present but significant validation and traction milestones remain ahead.`;
-  }
-  return `Early-stage founder profile at ${pct}% overall. The concept and team are forming but require substantial development before investment readiness.`;
 }
 
-function generateInvestorExplanation(
-  scores: ScoreDimension[],
-  bucket: ScoreBucket | null
-): string {
-  const total = scores.reduce((s, d) => s + d.score, 0);
-  const maxTotal = scores.reduce((s, d) => s + d.weight, 0);
-  const pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
-
-  if (bucket === "hot") {
-    return `Strong investor profile scoring ${pct}% overall. Active deployment, meaningful cheque capacity, and broad sector focus make this investor highly attractive for deal flow matching.`;
+function generateInvestorExplanation(bucket: ScoreBucket | null): string {
+  switch (bucket) {
+    case "hot":
+      return "Strong investor profile with active deployment and meaningful cheque capacity.";
+    case "good":
+      return "Solid investor with defined thesis and moderate deployment activity.";
+    case "maybe":
+      return "Early-stage investor with developing criteria and limited track record.";
+    case "low":
+      return "Investor criteria not yet aligned with active deployment requirements.";
+    default:
+      return "Awaiting qualification data.";
   }
-  if (bucket === "good") {
-    return `Solid investor profile at ${pct}% overall. Good alignment with investment criteria though deployment capacity or portfolio experience may be developing.`;
-  }
-  if (bucket === "maybe") {
-    return `Moderate investor profile at ${pct}% overall. Investment thesis is defined but engagement levels or deployment history require further validation.`;
-  }
-  return `Early-stage investor profile at ${pct}% overall. Investment criteria are forming but active deployment track record is not yet established.`;
 }
 
 function generateRecommendation(

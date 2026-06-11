@@ -7,9 +7,9 @@ import * as leadRepo from "../repositories/lead.repository.js";
 import * as profileRepo from "../repositories/profile.repository.js";
 import * as scoreRepo from "../repositories/score.repository.js";
 import * as documentRepo from "../repositories/document.repository.js";
-import * as activityLogsRepo from "../../../shared/db/repositories/activityLogs.repository.js";
 import { calculateScore, getBucket } from "../../scoring/scoring.service.js";
 import { consumeTempFile } from "../../uploads/temp-store.js";
+import { withTransaction, query } from "../../../shared/db/pool.js";
 
 const sessions = new Map<string, {
   id: string;
@@ -98,106 +98,134 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
     };
   }
 
-  const lead = await leadRepo.create({
-    type: req.type,
-    full_name: (req.answers.full_name as string | undefined) ?? "Unknown",
-    email,
-    phone: (req.answers.phone as string | undefined) ?? null,
-    linkedin_url: (req.answers.linkedin as string | undefined) ?? null,
-    source: "qualification",
-  });
-
-  const fileId =
-    req.type === "founder"
-      ? (req.answers.pitch_deck as string | undefined)
-      : (req.answers.investment_thesis as string | undefined);
-
-  if (fileId) {
-    const temp = consumeTempFile(fileId);
-    if (temp) {
-      await documentRepo.create({
-        lead_id: lead.id,
-        type: req.type === "founder" ? "pitch-deck" : "investment-thesis",
-        file_name: temp.originalname,
-        file_size: temp.size,
-        mime_type: temp.mimetype,
-        storage_key: temp.storageKey,
-      });
-    }
-  }
-
-  if (req.type === "founder") {
-    await profileRepo.createFounderProfile({
-      lead_id: lead.id,
-      prev_startup: req.answers.prev_startup === "yes" || null,
-      industry_experience: req.answers.industry_experience
-        ? Number(req.answers.industry_experience)
-        : null,
-      commitment: (req.answers.commitment as string | undefined) ?? null,
-      startup_name: (req.answers.startup_name as string | undefined) ?? null,
-      industry: (req.answers.industry as string | undefined) ?? null,
-      problem_statement: (req.answers.problem_statement as string | undefined) ?? null,
-      target_customer: (req.answers.target_customer as string | undefined) ?? null,
-      mvp_status: (req.answers.mvp_status as string | undefined) ?? null,
-      active_users: req.answers.active_users ? Number(req.answers.active_users) : null,
-      monthly_revenue: req.answers.monthly_revenue ? Number(req.answers.monthly_revenue) : null,
-      growth_rate: req.answers.growth_rate ? Number(req.answers.growth_rate) : null,
-      team_size: req.answers.team_size ? Number(req.answers.team_size) : null,
-      has_cofounder: req.answers.has_cofounder === "yes" || null,
-      funding_ask: req.answers.funding_ask ? Number(req.answers.funding_ask) : null,
-    });
-  } else {
-    await profileRepo.createInvestorProfile({
-      lead_id: lead.id,
-      investor_type: (req.answers.investor_type as string | undefined) ?? null,
-      preferred_stage: (req.answers.preferred_stage as string | undefined) ?? null,
-      sector_focus: Array.isArray(req.answers.sector_focus)
-        ? (req.answers.sector_focus as string[])
-        : null,
-      cheque_min: req.answers.cheque_min ? Number(req.answers.cheque_min) : null,
-      cheque_max: req.answers.cheque_max ? Number(req.answers.cheque_max) : null,
-      deployment_timeline:
-        (req.answers.deployment_timeline as string | undefined) ?? null,
-      portfolio_count: req.answers.portfolio_count
-        ? Number(req.answers.portfolio_count)
-        : null,
-      geography: (req.answers.geography as string | undefined) ?? null,
-      follow_on_strategy:
-        (req.answers.follow_on_strategy as string | undefined) ?? null,
-      value_add: (req.answers.value_add as string | undefined) ?? null,
-      decision_timeline:
-        (req.answers.decision_timeline as string | undefined) ?? null,
-      actively_investing:
-        (req.answers.actively_investing as string | undefined) ?? null,
-      looking_for_deals:
-        req.answers.looking_for_deals === true ||
-        req.answers.looking_for_deals === "true",
-    });
-  }
-
   const { total, dimensions } = calculateScore(req.type, req.answers);
-  await scoreRepo.deleteByLeadId(lead.id);
-  await scoreRepo.createMany(
-    dimensions.map((d) => ({
-      lead_id: lead.id,
-      dimension: d.dimension,
-      score: d.score,
-      weight: d.weight,
-      rationale: d.rationale,
-    }))
-  );
-
   const bucket = getBucket(total);
-  await leadRepo.updateScore(lead.id, total, bucket);
-
-  await activityLogsRepo.create({
-    lead_id: lead.id,
-    action: "lead_created",
-    description: `${req.type === "founder" ? "Founder" : "Investor"} qualification completed — score ${total}`,
-    metadata: { score: total },
-  });
-
   const bucketLabel = bucket;
+
+  const lead = await withTransaction(async (client) => {
+    const l = await leadRepo.create({
+      type: req.type,
+      full_name: (req.answers.full_name as string | undefined) ?? "Unknown",
+      email,
+      phone: (req.answers.phone as string | undefined) ?? null,
+      linkedin_url: (req.answers.linkedin as string | undefined) ?? null,
+      source: "qualification",
+    }, client);
+
+    const fileId =
+      req.type === "founder"
+        ? (req.answers.pitch_deck as string | undefined)
+        : (req.answers.investment_thesis as string | undefined);
+
+    if (fileId) {
+      const temp = consumeTempFile(fileId);
+      if (temp) {
+        await query(
+          `INSERT INTO documents (lead_id, type, file_name, file_size, mime_type, storage_key)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            l.id,
+            req.type === "founder" ? "pitch-deck" : "investment-thesis",
+            temp.originalname,
+            temp.size,
+            temp.mimetype,
+            temp.storageKey,
+          ],
+          client
+        );
+      }
+    }
+
+    if (req.type === "founder") {
+      await query(
+        `INSERT INTO founder_profiles (
+          lead_id, prev_startup, industry_experience, commitment,
+          startup_name, industry, problem_statement, target_customer,
+          mvp_status, active_users, monthly_revenue, growth_rate,
+          team_size, has_cofounder, funding_ask
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+        [
+          l.id,
+          req.answers.prev_startup === "yes" || null,
+          req.answers.industry_experience ? Math.round(Number(req.answers.industry_experience)) : null,
+          (req.answers.commitment as string | undefined) ?? null,
+          (req.answers.startup_name as string | undefined) ?? null,
+          (req.answers.industry as string | undefined) ?? null,
+          (req.answers.problem_statement as string | undefined) ?? null,
+          (req.answers.target_customer as string | undefined) ?? null,
+          (req.answers.mvp_status as string | undefined) ?? null,
+          req.answers.active_users ? Math.round(Number(req.answers.active_users)) : null,
+          req.answers.monthly_revenue ? Number(req.answers.monthly_revenue) : null,
+          req.answers.growth_rate ? Number(req.answers.growth_rate) : null,
+          req.answers.team_size ? Math.round(Number(req.answers.team_size)) : null,
+          req.answers.has_cofounder === "yes" || null,
+          req.answers.funding_ask ? Number(req.answers.funding_ask) : null,
+        ],
+        client
+      );
+    } else {
+      await query(
+        `INSERT INTO investor_profiles (
+          lead_id, investor_type, preferred_stage, sector_focus,
+          cheque_min, cheque_max, deployment_timeline, portfolio_count,
+          geography, follow_on_strategy, value_add, decision_timeline,
+          actively_investing, looking_for_deals
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        [
+          l.id,
+          (req.answers.investor_type as string | undefined) ?? null,
+          (req.answers.preferred_stage as string | undefined) ?? null,
+          Array.isArray(req.answers.sector_focus)
+            ? JSON.stringify(req.answers.sector_focus)
+            : null,
+          req.answers.cheque_min ? Number(req.answers.cheque_min) : null,
+          req.answers.cheque_max ? Number(req.answers.cheque_max) : null,
+          (req.answers.deployment_timeline as string | undefined) ?? null,
+          req.answers.portfolio_count ? Math.round(Number(req.answers.portfolio_count)) : null,
+          (req.answers.geography as string | undefined) ?? null,
+          (req.answers.follow_on_strategy as string | undefined) ?? null,
+          (req.answers.value_add as string | undefined) ?? null,
+          (req.answers.decision_timeline as string | undefined) ?? null,
+          (req.answers.actively_investing as string | undefined) ?? null,
+          req.answers.looking_for_deals === true ||
+            req.answers.looking_for_deals === "true",
+        ],
+        client
+      );
+    }
+
+    await scoreRepo.deleteByLeadId(l.id, client);
+    await scoreRepo.createMany(
+      dimensions.map((d) => ({
+        lead_id: l.id,
+        dimension: d.dimension,
+        score: d.score,
+        weight: d.weight,
+        rationale: d.rationale,
+      })),
+      client
+    );
+
+    await query(
+      `UPDATE leads SET score = $1, score_bucket = $2, updated_at = NOW() WHERE id = $3`,
+      [total, bucket, l.id],
+      client
+    );
+
+    await query(
+      `INSERT INTO activity_logs (lead_id, action, description, metadata)
+       VALUES ($1, $2, $3, $4)`,
+      [
+        l.id,
+        "lead_created",
+        `${req.type === "founder" ? "Founder" : "Investor"} qualification completed — score ${total}`,
+        JSON.stringify({ score: total }),
+      ],
+      client
+    );
+
+    return l;
+  });
 
   if (req.sessionId) {
     sessions.delete(req.sessionId);

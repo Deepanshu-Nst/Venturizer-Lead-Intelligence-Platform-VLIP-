@@ -1,4 +1,4 @@
-import { query } from "../pool.js";
+import { query, type PoolClient } from "../pool.js";
 import type { QueryResultRow } from "pg";
 
 // ---------------------------------------------------------------------------
@@ -67,13 +67,14 @@ export async function findOne<T extends QueryResultRow>(
  */
 export async function insertOne<T extends QueryResultRow>(
   table: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  client?: PoolClient
 ): Promise<T> {
   const columns = Object.keys(data);
   const values = Object.values(data);
   const placeholders = values.map((_, i) => `$${i + 1}`).join(", ");
 
   const sql = `INSERT INTO ${table} (${columns.join(", ")}) VALUES (${placeholders}) RETURNING *`;
-  const result = await query<T>(sql, values);
+  const result = await query<T>(sql, values, client);
   return result.rows[0];
 }

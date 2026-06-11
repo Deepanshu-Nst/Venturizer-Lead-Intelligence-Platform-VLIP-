@@ -1,4 +1,4 @@
-import { query } from "../pool.js";
+import { query, type PoolClient } from "../pool.js";
 import { findOne, paginatedQuery, insertOne } from "./base.repository.js";
 import type {
   Lead,
@@ -86,7 +86,7 @@ export async function findByEmail(email: string): Promise<Lead | null> {
   return findOne<Lead>(`${SELECT} WHERE LOWER(email) = LOWER($1)`, [email]);
 }
 
-export async function create(input: CreateLeadInput): Promise<Lead> {
+export async function create(input: CreateLeadInput, client?: PoolClient): Promise<Lead> {
   return insertOne<Lead>(TABLE, {
     type: input.type,
     full_name: input.full_name,
@@ -94,7 +94,7 @@ export async function create(input: CreateLeadInput): Promise<Lead> {
     phone: input.phone ?? null,
     linkedin_url: input.linkedin_url ?? null,
     source: input.source ?? "direct",
-  });
+  }, client);
 }
 
 export async function updateStatus(
