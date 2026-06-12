@@ -56,9 +56,9 @@ export function SummaryCards({ summary, loading }: SummaryCardsProps) {
               : "neutral",
         },
         {
-          title: "Hot Leads",
+          title: "Strong Fits",
           value: summary.hot_leads,
-          subtitle: `${summary.good_leads} good · ${summary.maybe_leads} maybe`,
+          subtitle: `${summary.good_leads} qualified · ${summary.maybe_leads} reviewing`,
           icon: Target,
           trend: summary.hot_leads > 0 ? "up" : "neutral",
           accentColor: "text-[#dc2626]",

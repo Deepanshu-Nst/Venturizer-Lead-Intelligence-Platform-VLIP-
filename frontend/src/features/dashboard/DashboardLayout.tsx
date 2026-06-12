@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import { Menu, X, ArrowLeft } from "lucide-react";
+import { Menu, X, ArrowLeft, Shield } from "lucide-react";
 import { DashboardSidebar } from "@/shared/components/DashboardSidebar";
 import { dashboardNav } from "@/shared/config/navigation";
 import { cn } from "@/shared/lib/utils";
@@ -30,7 +30,10 @@ export function DashboardLayout() {
                   <path d="M24 8L17.5 22L16 18.5L20.5 8H24Z" fill="white" fillOpacity="0.9"/>
                 </svg>
               </div>
-              <span className="text-[13px] font-semibold">Venturizer</span>
+              <div className="flex-1 min-w-0">
+                <span className="text-[13px] font-semibold block leading-none">Venturizer</span>
+                <span className="text-[9px] text-muted-foreground/50 uppercase tracking-widest">Internal ERP</span>
+              </div>
               <button
                 className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:bg-secondary"
                 onClick={() => setMobileSidebar(false)}
@@ -64,7 +67,7 @@ export function DashboardLayout() {
             <div className="border-t border-border px-3 py-4">
               <Link to="/" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground px-3 py-2">
                 <ArrowLeft className="h-3 w-3" />
-                Back to site
+                Exit to public site
               </Link>
             </div>
           </div>
@@ -73,7 +76,7 @@ export function DashboardLayout() {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
-        {/* Top bar */}
+        {/* Top bar — operator console style */}
         <header className="sticky top-0 z-30 flex h-[60px] items-center gap-4 border-b border-border bg-white px-4 sm:px-6">
           <button
             className="lg:hidden inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
@@ -83,7 +86,19 @@ export function DashboardLayout() {
             <Menu className="h-5 w-5" />
           </button>
 
+          {/* Internal designation */}
+          <div className="flex items-center gap-2">
+            <Shield className="h-3.5 w-3.5 text-muted-foreground/40" />
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/40">Internal ERP</span>
+          </div>
+
           <div className="flex-1" />
+
+          {/* Operator badge */}
+          <div className="hidden sm:flex items-center gap-2 rounded-lg border border-border bg-[#f7f8fa] px-3 py-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="text-[11px] font-medium text-muted-foreground">Operator View</span>
+          </div>
 
           <button
             type="button"
@@ -91,7 +106,7 @@ export function DashboardLayout() {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg px-3 py-1.5 hover:bg-secondary"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Exit Dashboard</span>
+            <span className="hidden sm:inline">Exit to site</span>
           </button>
         </header>
 

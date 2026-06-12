@@ -52,3 +52,18 @@ export async function getById(req: Request, res: Response): Promise<void> {
   }
   res.json(success(lead));
 }
+
+export async function checkEmail(req: Request, res: Response): Promise<void> {
+  const email = req.query.email as string;
+  if (!email) {
+    res.status(400).json(error("VALIDATION", "Email query parameter is required"));
+    return;
+  }
+  
+  // We can query the DB directly here or add a service method.
+  // Actually, we should import the repository
+  const { findByEmail } = await import("../../../shared/db/repositories/leads.repository.js");
+  const existing = await findByEmail(email);
+  
+  res.json(success({ exists: !!existing }));
+}

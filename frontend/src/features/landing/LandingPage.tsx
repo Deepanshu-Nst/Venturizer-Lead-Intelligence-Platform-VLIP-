@@ -1,70 +1,62 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/shared/ui/button";
-import { ArrowRight, MessageSquare, Zap, Briefcase, TrendingUp, CheckCircle2, Shield, BarChart3 } from "lucide-react";
+import { ArrowRight, MessageSquare, Zap, Briefcase, TrendingUp, Shield, BarChart3, ChevronRight, CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useChatbot } from "@/features/chatbot/ChatbotContext";
 
 export function LandingPage() {
-  const navigate = useNavigate();
   const chatbot = useChatbot();
 
   return (
     <div className="animate-fade-in">
       {/* ── HERO ── */}
       <section className="relative overflow-hidden">
-        {/* Subtle background texture */}
+        {/* Background texture */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-50/80 to-transparent pointer-events-none" />
 
         <div className="container relative pt-24 pb-20 md:pt-32 md:pb-28">
-          <div className="mx-auto max-w-2xl text-center">
-            {/* Category label */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-1.5 text-[12px] font-medium text-muted-foreground mb-8 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
-              Venture-grade lead intelligence
-            </div>
-
+          <div className="mx-auto max-w-4xl text-center">
             {/* Headline */}
-            <h1 className="text-[42px] md:text-[56px] font-bold tracking-tight text-[#0d1428] leading-[1.08] text-balance">
-              Qualify leads with
-              <br />
-              <span className="text-[#dc2626]">conviction.</span>
+            <h1 className="text-[48px] md:text-[68px] font-extrabold tracking-tight text-[#0d1428] leading-[1.02] text-balance">
+              Qualify startups.<br />
+              Discover opportunities.<br />
+              <span className="text-[#dc2626]">Move faster.</span>
             </h1>
 
-            <p className="mt-6 text-[17px] text-muted-foreground max-w-lg mx-auto leading-relaxed text-balance">
-              Venturizer's qualification assistant guides founders and investors through a
-              conversational flow — scoring fit, capturing data, and surfacing matches that matter.
+            <p className="mt-8 text-[18px] text-muted-foreground max-w-2xl mx-auto leading-relaxed text-balance">
+              Venturizer helps founders surface investor-ready signals and helps investors review opportunities with greater confidence.
             </p>
 
             {/* CTAs */}
-            <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <button
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <motion.button
                 id="hero-open-chatbot"
                 type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={chatbot.open}
-                className="group inline-flex items-center gap-2.5 rounded-xl bg-[#0d1428] px-6 py-3.5 text-[15px] font-semibold text-white transition-all duration-200 hover:bg-[#1a2540] hover:shadow-lg hover:shadow-[#0d1428]/20 active:scale-[0.98] w-full sm:w-auto justify-center"
+                className="group inline-flex w-full sm:w-auto items-center justify-center gap-2.5 rounded-xl bg-[#0d1428] px-8 py-4 text-[16px] font-semibold text-white transition-shadow hover:bg-[#1a2540] hover:shadow-xl hover:shadow-[#0d1428]/20"
               >
-                <MessageSquare className="h-4 w-4" aria-hidden />
-                Chat with Venturizer
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-              </button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-[50px] px-6 text-[15px] font-medium w-full sm:w-auto"
-                onClick={() => navigate("/dashboard")}
+                Start Qualification
+                <ChevronRight className="h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform" aria-hidden />
+              </motion.button>
+              
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="group inline-flex w-full sm:w-auto items-center justify-center gap-2.5 rounded-xl bg-white border border-border px-8 py-4 text-[16px] font-semibold text-[#0d1428] transition-colors hover:bg-secondary"
               >
-                View Dashboard
-              </Button>
+                See How It Works
+              </motion.button>
             </div>
-
-            <p className="mt-4 text-xs text-muted-foreground/50">
-              5 minutes · No account required · Data secured
-            </p>
           </div>
         </div>
       </section>
 
       {/* ── CHATBOT PREVIEW ── */}
-      <section className="border-t border-border bg-[#f7f8fa]">
+      <section id="how-it-works" className="border-t border-border bg-[#f7f8fa]">
         <div className="container py-20 md:py-24">
           <div className="mx-auto max-w-4xl">
             <div className="grid gap-12 lg:grid-cols-2 items-center">
@@ -77,7 +69,7 @@ export function LandingPage() {
                 </h2>
                 <p className="mt-4 text-[15px] text-muted-foreground leading-relaxed">
                   Our assistant asks smart, contextual questions — one at a time. Answers are
-                  validated in real time and scored automatically against a 0–100 qualification model.
+                  scored automatically against a 0–100 qualification model in real time.
                 </p>
 
                 <div className="mt-8 space-y-4">
@@ -142,7 +134,7 @@ export function LandingPage() {
                   <div className="px-5 py-5 space-y-4">
                     <BotBubble text="Hi there 👋 I'm the Venturizer Qualification Assistant. Are you a **Founder** or an **Investor**?" />
                     <UserBubble text="Founder" />
-                    <BotBubble text="Great! Let's get started. What is your **startup called**?" />
+                    <BotBubble text="Great! Let's qualify your startup. I'll ask ~18 focused questions — takes about 5 minutes 🚀" />
                     <div className="flex items-end gap-2 opacity-60">
                       <AvatarV />
                       <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-white/[0.06] px-4 py-3">
@@ -169,37 +161,81 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── PATHS ── */}
-      <section className="border-t border-border bg-white">
-        <div className="container py-20 md:py-24">
-          <div className="mx-auto max-w-4xl">
-            <div className="text-center mb-12">
-              <p className="section-label mb-3">Two paths, one platform</p>
-              <h2 className="text-[28px] font-bold text-[#0d1428] tracking-tight">
-                Built for both sides of the table
-              </h2>
+      {/* ── FOR FOUNDERS ── */}
+      <section id="for-founders" className="border-t border-border bg-white overflow-hidden">
+        <div className="container py-24 md:py-32">
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            <div className="order-2 lg:order-1 relative">
+              <div className="aspect-square max-w-md mx-auto lg:mx-0 rounded-2xl bg-secondary/50 border border-border p-8 flex flex-col justify-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+                <div className="space-y-6">
+                  <div className="h-12 w-12 rounded-xl bg-white shadow-sm border border-border flex items-center justify-center">
+                    <Briefcase className="h-6 w-6 text-[#0d1428]" />
+                  </div>
+                  <div>
+                    <h3 className="text-[20px] font-bold text-[#0d1428] mb-2">Upload your deck. Get reviewed.</h3>
+                    <p className="text-[14px] text-muted-foreground leading-relaxed">
+                      Share your vision, traction, and market size. Our qualification engine scores your startup against our active investment thesis in real time.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
+            <div className="order-1 lg:order-2">
+              <p className="section-label mb-3">For Founders</p>
+              <h2 className="text-[36px] font-bold text-[#0d1428] tracking-tight leading-tight mb-6">
+                Skip the cold outreach.<br />Get straight to the point.
+              </h2>
+              <p className="text-[16px] text-muted-foreground leading-relaxed mb-8">
+                Venturizer provides a direct line to our investment team. By answering a few key questions, you ensure your startup gets evaluated on the metrics that actually matter.
+              </p>
+              <button
+                type="button"
+                onClick={() => chatbot.openWithPersona('founder')}
+                className="inline-flex items-center gap-2.5 rounded-xl bg-[#0d1428] px-6 py-3.5 text-[14px] font-bold text-white transition-all hover:bg-[#1a2540] active:scale-[0.98]"
+              >
+                Start Founder Qualification <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="grid gap-5 md:grid-cols-2">
-              {/* Founders card */}
-              <PathCard
-                icon={<Briefcase className="h-5 w-5" />}
-                label="For Founders"
-                count="18 questions"
-                description="Share your vision, upload your pitch deck, and get matched with the right investors based on stage, sector, and traction."
-                cta="Start as a founder"
-                onClick={chatbot.open}
-              />
-
-              {/* Investors card */}
-              <PathCard
-                icon={<TrendingUp className="h-5 w-5" />}
-                label="For Investors"
-                count="17 questions"
-                description="Define your thesis, set your parameters, and discover high-quality deal flow that matches your investment criteria."
-                cta="Start as an investor"
-                onClick={chatbot.open}
-              />
+      {/* ── FOR INVESTORS ── */}
+      <section id="for-investors" className="border-t border-border bg-[#f7f8fa] overflow-hidden">
+        <div className="container py-24 md:py-32">
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            <div>
+              <p className="section-label mb-3">For Investors</p>
+              <h2 className="text-[36px] font-bold text-[#0d1428] tracking-tight leading-tight mb-6">
+                Curated deal flow.<br />Matched to your thesis.
+              </h2>
+              <p className="text-[16px] text-muted-foreground leading-relaxed mb-8">
+                Stop sifting through irrelevant pitches. Tell us your focus areas, stage preferences, and check size, and we'll route high-quality, pre-qualified startups directly to you.
+              </p>
+              <button
+                type="button"
+                onClick={() => chatbot.openWithPersona('investor')}
+                className="inline-flex items-center gap-2.5 rounded-xl bg-white border border-border px-6 py-3.5 text-[14px] font-bold text-[#0d1428] shadow-sm transition-all hover:bg-secondary active:scale-[0.98]"
+              >
+                Create Investor Profile <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="relative">
+              <div className="aspect-square max-w-md mx-auto lg:mx-0 lg:ml-auto rounded-2xl bg-white border border-border p-8 flex flex-col justify-center relative overflow-hidden shadow-sm">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0d1428] to-slate-600" />
+                <div className="space-y-6">
+                  <div className="h-12 w-12 rounded-xl bg-[#f7f8fa] border border-border flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-[#0d1428]" />
+                  </div>
+                  <div>
+                    <h3 className="text-[20px] font-bold text-[#0d1428] mb-2">Define your parameters.</h3>
+                    <p className="text-[14px] text-muted-foreground leading-relaxed">
+                      Upload your investment thesis. Our matching engine pairs you with startups that align perfectly with your deployment strategy.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -219,9 +255,9 @@ export function LandingPage() {
             <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
               {[
                 { n: '01', label: 'Open chatbot', icon: <MessageSquare className="h-4 w-4" /> },
-                { n: '02', label: 'Choose path', icon: <Zap className="h-4 w-4" /> },
+                { n: '02', label: 'Choose your path', icon: <Zap className="h-4 w-4" /> },
                 { n: '03', label: 'Answer questions', icon: <CheckCircle2 className="h-4 w-4" /> },
-                { n: '04', label: 'Get scored', icon: <BarChart3 className="h-4 w-4" /> },
+                { n: '04', label: 'Get qualified', icon: <BarChart3 className="h-4 w-4" /> },
               ].map(({ n, label, icon }) => (
                 <div key={n} className="text-center">
                   <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-white border border-border shadow-sm text-[#0d1428]">
@@ -238,7 +274,7 @@ export function LandingPage() {
                 id="cta-open-chatbot"
                 type="button"
                 onClick={chatbot.open}
-                className="inline-flex items-center gap-2.5 rounded-xl bg-[#0d1428] px-7 py-3.5 text-[15px] font-semibold text-white transition-all hover:bg-[#1a2540] hover:shadow-lg active:scale-[0.98]"
+                className="inline-flex items-center gap-2.5 rounded-xl bg-[#0d1428] px-8 py-4 text-[15px] font-semibold text-white transition-all hover:bg-[#1a2540] hover:shadow-lg active:scale-[0.98]"
               >
                 <MessageSquare className="h-4 w-4" aria-hidden />
                 Get Started — It's Free
@@ -252,37 +288,6 @@ export function LandingPage() {
   );
 }
 
-function PathCard({
-  icon, label, count, description, cta, onClick
-}: {
-  icon: React.ReactNode;
-  label: string;
-  count: string;
-  description: string;
-  cta: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group text-left rounded-2xl border border-border bg-white p-7 transition-all duration-200 hover:border-[#0d1428]/30 hover:shadow-lg hover:shadow-black/5 active:scale-[0.99] w-full"
-    >
-      <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-[#f7f8fa] border border-border text-[#0d1428]">
-        {icon}
-      </div>
-      <div className="flex items-center gap-2 mb-2">
-        <h3 className="text-[16px] font-bold text-[#0d1428]">{label}</h3>
-        <span className="rounded-md bg-secondary border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{count}</span>
-      </div>
-      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-      <div className="mt-5 flex items-center gap-1.5 text-sm font-semibold text-[#dc2626] group-hover:gap-2 transition-all">
-        {cta}
-        <ArrowRight className="h-4 w-4" aria-hidden />
-      </div>
-    </button>
-  );
-}
 
 function AvatarV() {
   return (

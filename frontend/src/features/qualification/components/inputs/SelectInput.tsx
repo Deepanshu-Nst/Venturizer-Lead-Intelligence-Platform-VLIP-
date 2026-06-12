@@ -1,5 +1,5 @@
 import type { QuestionOption } from "@/features/qualification/types";
-import { ChevronDown } from "lucide-react";
+import { cn } from "@/shared/lib/utils";
 
 interface SelectInputProps {
   value: string;
@@ -8,28 +8,46 @@ interface SelectInputProps {
   placeholder?: string;
   disabled?: boolean;
   "aria-labelledby"?: string;
+  onAutoSubmit?: () => void;
 }
 
-export function SelectInput({ value, onChange, options, placeholder, disabled, ...props }: SelectInputProps) {
+export function SelectInput({ value, onChange, options, disabled, onAutoSubmit, ...props }: SelectInputProps) {
+  // If there are many options (e.g. industry), use a tighter grid, else 1-col
+  const isMany = options.length > 5;
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className="w-full appearance-none border-0 border-b-2 border-border bg-transparent pb-3 pt-1 text-lg text-foreground transition-all duration-200 focus-visible:border-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-        {...(props["aria-labelledby"] ? { "aria-labelledby": props["aria-labelledby"] } : {})}
-      >
-        <option value="" disabled>
-          {placeholder || "Select an option..."}
-        </option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="absolute right-0 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" aria-hidden />
+    <div
+      className={cn("grid gap-2", isMany ? "grid-cols-2" : "grid-cols-1")}
+      {...(props["aria-labelledby"] ? { "aria-labelledby": props["aria-labelledby"] } : {})}
+    >
+      {options.map((option) => {
+        const isSelected = value === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            disabled={disabled}
+            onClick={() => {
+              onChange(option.value);
+              // Auto-advance
+              if (onAutoSubmit) {
+                // slight delay for UX
+                setTimeout(onAutoSubmit, 150);
+              }
+            }}
+            className={cn(
+              "flex flex-col items-start justify-center rounded-xl border p-3 text-left transition-all active:scale-[0.98]",
+              isSelected
+                ? "border-emerald-500 bg-emerald-500/10"
+                : "border-white/[0.1] bg-white/[0.03] hover:border-white/[0.2] hover:bg-white/[0.06]",
+              disabled && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <span className={cn("text-[13px] font-semibold", isSelected ? "text-emerald-400" : "text-white")}>
+              {option.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

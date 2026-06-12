@@ -4,15 +4,23 @@ import { RootLayout } from "@/shared/layouts/RootLayout";
 import { LandingPage } from "@/features/landing/LandingPage";
 import { QualificationPage } from "@/features/qualification/QualificationPage";
 import { DashboardLayout } from "@/features/dashboard/DashboardLayout";
-import { DashboardPage } from "@/features/dashboard/DashboardPage";
+
 import { LeadDetailPage } from "@/features/dashboard/LeadDetailPage";
 import { ThankYouPage } from "@/features/qualification/ThankYouPage";
 import { ChatbotProvider } from "@/features/chatbot/ChatbotContext";
 import { ChatbotLauncher } from "@/features/chatbot/ChatbotLauncher";
 import { ChatbotPanel } from "@/features/chatbot/ChatbotPanel";
+import { AdminGate } from "@/features/auth/AdminGate";
 
 const AnalyticsPage = lazy(() =>
   import("@/features/dashboard/AnalyticsPage").then((m) => ({ default: m.AnalyticsPage }))
+);
+const LeadsPage = lazy(() =>
+  import("@/features/dashboard/LeadsPage").then((m) => ({ default: m.LeadsPage }))
+);
+
+const SettingsPage = lazy(() =>
+  import("@/features/dashboard/SettingsPage").then((m) => ({ default: m.SettingsPage }))
 );
 
 export default function App() {
@@ -24,10 +32,26 @@ export default function App() {
           <Route path="/thank-you" element={<ThankYouPage />} />
         </Route>
         <Route path="/qualify" element={<QualificationPage />} />
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="leads" element={<DashboardPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <AdminGate>
+              <DashboardLayout />
+            </AdminGate>
+          }
+        >
+          <Route index element={<Navigate to="leads" replace />} />
+          <Route path="leads" element={
+            <Suspense fallback={<div />}>
+              <LeadsPage />
+            </Suspense>
+          } />
           <Route path="leads/:id" element={<LeadDetailPage />} />
+          <Route path="settings" element={
+            <Suspense fallback={<div />}>
+              <SettingsPage />
+            </Suspense>
+          } />
           <Route
             path="analytics"
             element={
@@ -52,4 +76,3 @@ export default function App() {
     </ChatbotProvider>
   );
 }
-

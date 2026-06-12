@@ -4,7 +4,7 @@ import { useChatbot } from "./ChatbotContext";
 import { ChatbotConversation } from "./ChatbotConversation";
 
 export function ChatbotPanel() {
-  const { isOpen, close } = useChatbot();
+  const { isOpen, initialPersona, close } = useChatbot();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Focus trap + Escape key
@@ -39,6 +39,13 @@ export function ChatbotPanel() {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
+
+  // Dynamic subtitle based on persona
+  const subtitle = initialPersona === 'founder'
+    ? 'Founder Qualification'
+    : initialPersona === 'investor'
+    ? 'Investor Profile'
+    : 'Qualification Assistant';
 
   return (
     <>
@@ -91,7 +98,7 @@ export function ChatbotPanel() {
             </div>
             <div>
               <p className="text-[14px] font-bold text-white leading-none tracking-tight">Venturizer</p>
-              <p className="text-[11px] text-white/40 mt-0.5 leading-none">Qualification Assistant</p>
+              <p className="text-[11px] text-white/40 mt-0.5 leading-none">{subtitle}</p>
             </div>
           </div>
 

@@ -121,20 +121,20 @@ export function FileUploadInput({
 
   if (value) {
     return (
-      <div className="flex items-center justify-between rounded-xl border border-foreground/20 bg-foreground/[0.03] px-5 py-4">
+      <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 shadow-sm">
         <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-foreground/5" aria-hidden>
-              <FileText className="h-5 w-5 text-foreground/60" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20" aria-hidden>
+              <FileText className="h-5 w-5 text-emerald-400" />
             </div>
           <div>
-            <p className="text-sm font-medium text-foreground">PDF uploaded</p>
-            <p className="text-xs text-muted-foreground">Ready to submit</p>
+            <p className="text-[14px] font-bold text-white">PDF uploaded</p>
+            <p className="text-[12px] font-medium text-emerald-400">Ready to submit</p>
           </div>
         </div>
         <button
           type="button"
           onClick={handleRemove}
-          className="rounded-full p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"
+          className="rounded-full p-2 text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-colors"
           disabled={disabled}
         >
           <X className="h-4 w-4" />

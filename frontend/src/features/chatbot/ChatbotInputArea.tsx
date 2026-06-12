@@ -50,9 +50,18 @@ export function ChatbotInputArea({
 
   function renderInput() {
     const commonProps = { disabled };
+    let finalPlaceholder = question.placeholder ?? 'Type your answer…';
+    
+    // Add specific placeholders per user request
+    if (question.id === 'industry_experience_years') finalPlaceholder = 'Example: 0, 1, 2, 3';
+    if (question.id === 'target_customer') finalPlaceholder = 'E.g., Mid-market B2B SaaS companies';
+    if (question.id === 'active_users') finalPlaceholder = 'E.g., 1000 monthly active users';
+    if (question.id === 'monthly_revenue_usd' || question.id === 'funding_raising_usd') finalPlaceholder = 'e.g., $10,000';
+    if (question.id === 'growth_rate') finalPlaceholder = 'e.g., 15%';
+
     switch (question.type) {
       case 'text':
-        return <TextInput value={String(value ?? '')} onChange={onChange} placeholder={question.placeholder ?? 'Type your answer…'} {...commonProps} />;
+        return <TextInput value={String(value ?? '')} onChange={onChange} placeholder={finalPlaceholder} {...commonProps} />;
       case 'email':
         return <EmailInput value={String(value ?? '')} onChange={onChange} placeholder={question.placeholder ?? 'your@email.com'} {...commonProps} />;
       case 'tel':
@@ -60,19 +69,19 @@ export function ChatbotInputArea({
       case 'url':
         return <UrlInput value={String(value ?? '')} onChange={onChange} placeholder={question.placeholder ?? 'https://'} {...commonProps} />;
       case 'number':
-        return <NumberInput value={value === undefined || value === null || value === '' ? null : Number(value)} onChange={onChange} placeholder={question.placeholder} min={question.validation?.min} max={question.validation?.max} {...commonProps} />;
+        return <NumberInput value={value === undefined || value === null || value === '' ? null : Number(value)} onChange={onChange} placeholder={finalPlaceholder} min={question.validation?.min} max={question.validation?.max} {...commonProps} />;
       case 'select':
-        return <SelectInput value={String(value ?? '')} onChange={onChange} options={question.options ?? []} placeholder={question.placeholder ?? 'Select an option…'} {...commonProps} />;
+        return <SelectInput value={String(value ?? '')} onChange={onChange} options={question.options ?? []} placeholder={question.placeholder ?? 'Select an option…'} onAutoSubmit={onSubmit} {...commonProps} />;
       case 'multiselect':
         return <MultiSelectInput value={Array.isArray(value) ? value : []} onChange={onChange} options={question.options ?? []} {...commonProps} />;
       case 'textarea':
-        return <TextAreaInput value={String(value ?? '')} onChange={onChange} placeholder={question.placeholder ?? 'Type your answer…'} {...commonProps} />;
+        return <TextAreaInput value={String(value ?? '')} onChange={onChange} placeholder={finalPlaceholder} {...commonProps} />;
       case 'boolean':
-        return <BooleanInput value={value === true || value === false ? (value as boolean) : null} onChange={onChange} {...commonProps} />;
+        return <BooleanInput value={value === true || value === false ? (value as boolean) : null} onChange={onChange} onAutoSubmit={onSubmit} {...commonProps} />;
       case 'file':
         return <FileUploadInput value={typeof value === 'string' ? value : null} onChange={(v) => onChange(v)} documentType={documentType} {...commonProps} />;
       default:
-        return <TextInput value={String(value ?? '')} onChange={onChange} placeholder="Type your answer…" {...commonProps} />;
+        return <TextInput value={String(value ?? '')} onChange={onChange} placeholder={finalPlaceholder} {...commonProps} />;
     }
   }
 

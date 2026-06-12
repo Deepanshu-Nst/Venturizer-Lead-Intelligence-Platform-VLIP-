@@ -32,17 +32,16 @@ export function validateField(
       break;
     }
     case "tel": {
-      const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
-      if (!phoneRegex.test(String(value))) {
-        return { field: question.id, message: "Please enter a valid phone number" };
+      const phoneRegex = /^\+?[1-9]\d{9,15}$/;
+      if (!phoneRegex.test(String(value).replace(/[\s-()]/g, ''))) {
+        return { field: question.id, message: "Please enter a valid phone number (10-16 digits)" };
       }
       break;
     }
     case "url": {
-      try {
-        new URL(String(value));
-      } catch {
-        return { field: question.id, message: "Please enter a valid URL" };
+      const urlRegex = /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{2,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+      if (!urlRegex.test(String(value))) {
+        return { field: question.id, message: "Please enter a valid URL (e.g., https://example.com)" };
       }
       if (validation.pattern && !String(value).includes(validation.pattern)) {
         return {

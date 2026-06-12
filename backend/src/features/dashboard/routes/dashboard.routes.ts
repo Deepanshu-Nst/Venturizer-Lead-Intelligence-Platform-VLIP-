@@ -14,4 +14,8 @@ router.get("/leads/:id", asyncHandler(dashboardController.getLeadDetail));
 
 router.patch("/leads/:id/status", asyncHandler(dashboardController.updateLeadStatus));
 
+router.post("/leads/:id/notes", asyncHandler(dashboardController.addNote));
+
+router.get("/leads/:id/notes", asyncHandler(dashboardController.getNotes));
+
 export default router;

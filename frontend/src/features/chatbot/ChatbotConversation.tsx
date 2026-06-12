@@ -5,6 +5,8 @@ import { validateField } from "@/features/qualification/validation";
 import { loadSession } from "@/features/qualification/engine/conversationState";
 import { ChatbotMessage } from "./ChatbotMessage";
 import { ChatbotInputArea } from "./ChatbotInputArea";
+import { useChatbot } from "./ChatbotContext";
+import { CheckCircle2, Home, RotateCcw, Briefcase, Landmark } from "lucide-react";
 import type { FlowType } from "@/features/qualification/types";
 import type { ValidationError } from "@/features/qualification/types";
 
@@ -16,11 +18,74 @@ interface ChatMessage {
   content: string;
 }
 
+// ── Score band system ─────────────────────────────────────────────────────────
+interface BandConfig {
+  emoji: string;
+  label: string;            // shown to applicant
+  internalLabel: string;    // shown internally
+  applicantMessage: string; // outcome message shown after submission
+  nextStep: string;         // expected next step copy
+  operatorAction: string;   // for internal dashboard
+}
+
+function getBandConfig(score: number, flowType: FlowType | null): BandConfig {
+  if (score >= 85) {
+    return {
+      emoji: '🔥',
+      label: 'Strong Fit',
+      internalLabel: 'Hot Lead',
+      applicantMessage:
+        flowType === 'founder'
+          ? 'Your startup appears aligned with the types of opportunities currently being reviewed by Venturizer.'
+          : 'Your investor profile strongly aligns with the deal flow we are currently sourcing.',
+      nextStep: 'A Venturizer team member may reach out for further discussion within the next few business days.',
+      operatorAction: 'Schedule intro call within 24 hours',
+    };
+  }
+  if (score >= 70) {
+    return {
+      emoji: '✅',
+      label: 'Qualified',
+      internalLabel: 'Good Lead',
+      applicantMessage:
+        flowType === 'founder'
+          ? 'Your startup profile meets several of our qualification criteria.'
+          : 'Your investment profile meets several of our matching criteria.',
+      nextStep: 'Your application has entered our review queue.',
+      operatorAction: 'Follow up with intake email',
+    };
+  }
+  if (score >= 40) {
+    return {
+      emoji: '📋',
+      label: 'Under Review',
+      internalLabel: 'Maybe',
+      applicantMessage: 'Your application requires additional review before a determination can be made.',
+      nextStep: 'We may reach out to request more information before proceeding.',
+      operatorAction: 'Add to review queue',
+    };
+  }
+  return {
+    emoji: '📌',
+    label: 'Not a Current Fit',
+    internalLabel: 'Low Priority',
+    applicantMessage: 'Your submission does not currently meet our review thresholds.',
+    nextStep: 'You are welcome to reapply as your circumstances evolve.',
+    operatorAction: 'Mark as not a fit',
+  };
+}
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 const BOT_INTRO = "Hi there 👋 I'm the Venturizer Qualification Assistant. I'll guide you through a quick set of questions to match you with the right opportunities.\n\nAre you a **Founder** or an **Investor**?";
 
 const BOT_FLOW_GREETINGS: Record<FlowType, string> = {
-  founder: "Great! Let's qualify your startup. I'll ask ~18 questions — takes about 5 minutes. Let's go 🚀",
-  investor: "Perfect! I'll walk you through ~17 questions to understand your investment thesis. Let's begin 📈",
+  founder: "Great! Let's qualify your startup — I'll ask ~18 focused questions. Takes about 5 minutes. Let's begin 🚀",
+  investor: "Perfect! I'll walk you through ~17 questions to understand your investment focus. Let's begin 📈",
+};
+
+const BOT_PERSONA_INTRO: Record<FlowType, string> = {
+  founder: "Welcome 👋 I'm the Venturizer Qualification Assistant. I'll ask you a few questions about your startup to assess fit. Let's start 🚀",
+  investor: "Welcome 👋 I'm the Venturizer Qualification Assistant. I'll ask about your investment focus to find the right deal flow for you. Let's begin 📈",
 };
 
 function formatAnswerForDisplay(value: unknown): string {
@@ -35,8 +100,79 @@ function formatAnswerForDisplay(value: unknown): string {
   return String(value);
 }
 
-export function ChatbotConversation() {
+// ── CompletionOutcomeCard ─────────────────────────────────────────────────────
+function CompletionOutcomeCard({
+  score,
+  flowType,
+  onReset,
+}: {
+  score: number;
+  flowType: FlowType | null;
+  onReset: () => void;
+}) {
   const navigate = useNavigate();
+  const band = getBandConfig(score, flowType);
+
+  return (
+    <div className="pt-4 px-1">
+      {/* Outcome card */}
+      <div className="rounded-2xl border border-white/[0.1] bg-white/[0.05] overflow-hidden">
+        {/* Band header */}
+        <div className="px-5 pt-5 pb-4 border-b border-white/[0.07]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" aria-hidden />
+              <span className="text-[11px] font-semibold uppercase tracking-widest text-white/40">Qualification Complete</span>
+            </div>
+            <div className="text-right">
+              <span className="text-[28px] font-bold text-white leading-none">{score}</span>
+              <span className="text-[14px] text-white/30 font-medium">/100</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{band.emoji}</span>
+            <span className="text-[16px] font-bold text-white">{band.label}</span>
+          </div>
+        </div>
+
+        {/* Outcome message */}
+        <div className="px-5 py-4 space-y-3">
+          <p className="text-[13px] text-white/70 leading-relaxed">
+            {band.applicantMessage}
+          </p>
+          <div className="rounded-xl bg-white/[0.04] border border-white/[0.07] px-4 py-3">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-1.5">Expected Next Step</p>
+            <p className="text-[12px] text-white/60 leading-relaxed">{band.nextStep}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="mt-4 space-y-2">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-[13px] font-semibold text-[#0d1428] hover:bg-white/90 transition-colors"
+        >
+          <Home className="h-3.5 w-3.5" aria-hidden />
+          Return to Home
+        </button>
+        <button
+          type="button"
+          onClick={onReset}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] py-2.5 text-[13px] font-medium text-white/50 hover:text-white hover:border-white/20 transition-colors"
+        >
+          <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+          Start Another Qualification
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Main conversation component ───────────────────────────────────────────────
+export function ChatbotConversation() {
+  const { isOpen, initialPersona, clearPersona } = useChatbot();
   const {
     state,
     selectFlow,
@@ -55,6 +191,7 @@ export function ChatbotConversation() {
   const [isTyping, setIsTyping] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [completionScore, setCompletionScore] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSubmittingRef = useRef(false);
 
@@ -79,12 +216,20 @@ export function ChatbotConversation() {
     ]);
   }, []);
 
-  // Initialize
+
+  const hasGreetedRef = useRef(false);
+
+  // Initialize or handle persona when chatbot opens
   useEffect(() => {
-    if (initialized) return;
-    setInitialized(true);
+    if (!isOpen) return; // Only run logic when panel is actually open
+    
     const savedSession = loadSession();
-    if (savedSession && state.flowType && state.questions.length > 0) {
+    const hasProgress = savedSession && savedSession.flowType && Object.keys(savedSession.answers).length > 0;
+
+    // Handle session restore
+    if (!initialized && hasProgress && state.flowType && state.questions.length > 0) {
+      setInitialized(true);
+      hasGreetedRef.current = true;
       const introMessages: ChatMessage[] = [
         { id: 'bot-intro', role: 'bot', content: "Welcome back 👋 I've restored your progress. Let's continue from where you left off." },
       ];
@@ -105,21 +250,49 @@ export function ChatbotConversation() {
           setMessages((prev) => [...prev, { id: 'bot-current', role: 'bot', content: currentQ.question }]);
         }, 900);
       }
-    } else {
+      return;
+    }
+
+    if (!initialized && savedSession && !hasProgress) {
+      reset();
+    }
+
+    // Handle initial persona injection (e.g. from Nav / Homepage CTA)
+    if (initialPersona && !hasGreetedRef.current) {
+      setInitialized(true);
+      hasGreetedRef.current = true;
+      const greeting = BOT_PERSONA_INTRO[initialPersona];
+      addBotMessage(greeting, 400).then(() => {
+        selectFlow(initialPersona);
+        clearPersona();
+      });
+      return;
+    }
+
+    // Default intro if no persona and not yet initialized
+    if (!initialized && !initialPersona) {
+      setInitialized(true);
       addBotMessage(BOT_INTRO, 500);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isOpen, initialPersona, initialized, state.flowType, state.questions, state.currentIndex, state.answers, reset, selectFlow, clearPersona, addBotMessage]);
 
   const prevFlowType = useRef<FlowType | null>(null);
   useEffect(() => {
     if (!state.flowType || state.flowType === prevFlowType.current) return;
-    if (initialized && prevFlowType.current === null && !loadSession()) {
-      const greeting = BOT_FLOW_GREETINGS[state.flowType];
-      addBotMessage(greeting, 400).then(() => {
+    
+    if (initialized && prevFlowType.current === null) {
+      if (hasGreetedRef.current) {
+        // We already greeted via initialPersona. Just ask the first question.
         const firstQ = state.questions[0];
-        if (firstQ) addBotMessage(firstQ.question, 900);
-      });
+        if (firstQ) addBotMessage(firstQ.question, 600);
+      } else {
+        // Normal selection flow (user clicked Founder/Investor in chat)
+        const greeting = BOT_FLOW_GREETINGS[state.flowType];
+        addBotMessage(greeting, 400).then(() => {
+          const firstQ = state.questions[0];
+          if (firstQ) addBotMessage(firstQ.question, 900);
+        });
+      }
     }
     prevFlowType.current = state.flowType;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,6 +326,24 @@ export function ChatbotConversation() {
     const currentValue = state.answers[currentQuestion.id];
     const error = validateField(currentQuestion, currentValue);
     if (error) { setFieldError(error); return; }
+    
+    // Check email uniqueness if the current question is email
+    if (currentQuestion.type === 'email' && typeof currentValue === 'string') {
+      setIsSubmitting(true);
+      try {
+        const checkRes = await fetch(`/api/v1/lead/check-email?email=${encodeURIComponent(currentValue)}`);
+        const checkJson = await checkRes.json();
+        if (checkJson.data?.exists) {
+          setFieldError({ field: currentQuestion.id, message: "Lead Already Exists. Please use a different email." });
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Email check failed", err);
+      }
+      setIsSubmitting(false);
+    }
+    
     setFieldError(null);
 
     const displayVal = formatAnswerForDisplay(currentValue);
@@ -164,7 +355,7 @@ export function ChatbotConversation() {
       isSubmittingRef.current = true;
       setIsSubmitting(true);
       submitStart();
-      await addBotMessage('Perfect! Submitting your qualification now… ⏳', 400);
+      await addBotMessage('Submitting your qualification now… ⏳', 400);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
@@ -188,16 +379,8 @@ export function ChatbotConversation() {
         submitDone(json.data.lead_id);
 
         const score = json.data.score as number;
-        const bucket = json.data.bucket as string;
-        const bucketLabel =
-          bucket === 'hot' ? '🔥 Hot Lead' :
-          bucket === 'good' ? '✅ Good Fit' :
-          bucket === 'maybe' ? '📋 Worth Reviewing' : '📌 Low Priority';
-
-        await addBotMessage(
-          `✅ **Qualification complete!**\n\nYour qualification score is **${score}/100** — ${bucketLabel}.\n\nOur team will review your submission and get back to you within 48 hours. Thank you for connecting with Venturizer.`,
-          700
-        );
+        setCompletionScore(score);
+        await addBotMessage('Your qualification has been submitted. Here is your result:', 600);
       } catch (err) {
         clearTimeout(timeoutId);
         isSubmittingRef.current = false;
@@ -242,6 +425,7 @@ export function ChatbotConversation() {
     setMessages([]);
     setFieldError(null);
     setIsSubmitting(false);
+    setCompletionScore(null);
     isSubmittingRef.current = false;
     addBotMessage(BOT_INTRO, 400);
   }, [reset, addBotMessage]);
@@ -253,8 +437,33 @@ export function ChatbotConversation() {
   const showFlowSelector = !state.flowType && !isComplete;
   const showInputArea = !!state.flowType && !!currentQuestion && !isComplete;
 
+  // Progress
+  const totalQ = state.questions.length;
+  const currentQ = state.currentIndex + 1;
+  const progressPct = totalQ > 0 ? Math.round((currentQ / totalQ) * 100) : 0;
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {/* Progress bar — only when a flow is active and not complete */}
+      {state.flowType && !isComplete && totalQ > 0 && (
+        <div className="flex-none px-5 py-2 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+              {state.flowType === 'founder' ? 'Founder Qualification' : 'Investor Profile'}
+            </span>
+            <span className="text-[10px] text-white/25 tabular-nums">
+              {currentQ} / {totalQ}
+            </span>
+          </div>
+          <div className="h-0.5 w-full rounded-full bg-white/[0.07]">
+            <div
+              className="h-full rounded-full bg-white/30 transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Scrollable transcript */}
       <div
         ref={scrollRef}
@@ -282,15 +491,24 @@ export function ChatbotConversation() {
           </div>
         )}
 
-        {/* Completion actions */}
-        {isComplete && !isTyping && (
+        {/* Completion outcome card — replaces old "View Dashboard" buttons */}
+        {isComplete && !isTyping && completionScore !== null && (
+          <CompletionOutcomeCard
+            score={completionScore}
+            flowType={state.flowType}
+            onReset={handleReset}
+          />
+        )}
+
+        {/* Fallback if score not returned */}
+        {isComplete && !isTyping && completionScore === null && (
           <div className="pt-3 space-y-2">
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => window.location.href = '/'}
               className="w-full rounded-xl bg-white py-2.5 text-[13px] font-semibold text-[#0d1428] hover:bg-white/90 transition-colors"
             >
-              View Dashboard
+              Return to Home
             </button>
             <button
               type="button"
@@ -303,23 +521,23 @@ export function ChatbotConversation() {
         )}
       </div>
 
-      {/* Flow selector */}
+      {/* Flow selector — redesigned as distinct persona cards */}
       {showFlowSelector && !isTyping && (
         <div className="flex-none px-4 pb-5">
-          <p className="text-[11px] text-white/30 text-center mb-3">Choose your path to begin</p>
+          <p className="text-[11px] text-white/30 text-center mb-3 uppercase tracking-widest">Choose your path to begin</p>
           <div className="grid grid-cols-2 gap-2.5">
-            <FlowCard
+            <PersonaCard
               id="chatbot-select-founder"
-              emoji="🚀"
+              icon={<Briefcase className="h-5 w-5 text-emerald-400" />}
               label="Founder"
-              desc="Raising capital for your startup"
+              subtitle="Raising capital"
               onClick={() => handleSelectFlow('founder')}
             />
-            <FlowCard
+            <PersonaCard
               id="chatbot-select-investor"
-              emoji="📈"
+              icon={<Landmark className="h-5 w-5 text-blue-400" />}
               label="Investor"
-              desc="Seeking deal flow opportunities"
+              subtitle="Looking for deals"
               onClick={() => handleSelectFlow('investor')}
             />
           </div>
@@ -354,13 +572,14 @@ export function ChatbotConversation() {
   );
 }
 
-function FlowCard({
-  id, emoji, label, desc, onClick
+// ── PersonaCard — distinct, larger, clearer than old FlowCard ────────────────
+function PersonaCard({
+  id, icon, label, subtitle, onClick
 }: {
   id: string;
-  emoji: string;
+  icon: React.ReactNode;
   label: string;
-  desc: string;
+  subtitle: string;
   onClick: () => void;
 }) {
   return (
@@ -368,11 +587,15 @@ function FlowCard({
       id={id}
       type="button"
       onClick={onClick}
-      className="group flex flex-col items-start gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4 text-left transition-all hover:border-white/[0.18] hover:bg-white/[0.07] active:scale-[0.97]"
+      className="group flex flex-col items-start gap-2 rounded-xl border border-white/[0.1] bg-white/[0.05] p-4 text-left transition-all hover:border-white/[0.22] hover:bg-white/[0.09] active:scale-[0.97]"
     >
-      <span className="text-[18px]">{emoji}</span>
-      <span className="text-[13px] font-bold text-white">{label}</span>
-      <span className="text-[11px] text-white/40 leading-relaxed">{desc}</span>
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.05] border border-white/[0.05] mb-1">
+        {icon}
+      </div>
+      <div>
+        <span className="text-[14px] font-bold text-white block">{label}</span>
+        <span className="text-[11px] text-white/50 block mt-0.5">{subtitle}</span>
+      </div>
     </button>
   );
 }

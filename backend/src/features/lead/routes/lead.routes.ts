@@ -22,6 +22,8 @@ const upload = multer({
 
 const router = Router();
 
+router.get("/check-email", asyncHandler(leadController.checkEmail));
+
 router.post("/start", validate(startSchema), asyncHandler(leadController.start));
 
 router.post("/answer", validate(answerSchema), asyncHandler(leadController.answer));

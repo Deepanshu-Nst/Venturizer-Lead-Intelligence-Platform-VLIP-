@@ -1,7 +1,7 @@
 import {
   LayoutDashboard,
-  Users,
   TrendingUp,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 
@@ -12,7 +12,7 @@ export interface NavItem {
 }
 
 export const dashboardNav: NavItem[] = [
-  { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Leads", href: "/dashboard/leads", icon: Users },
+  { label: "Overview", href: "/dashboard/leads", icon: LayoutDashboard },
   { label: "Analytics", href: "/dashboard/analytics", icon: TrendingUp },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];

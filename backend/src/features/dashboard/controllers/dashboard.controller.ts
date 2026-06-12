@@ -64,3 +64,30 @@ export async function updateLeadStatus(req: Request, res: Response): Promise<voi
 
   res.json(success(lead));
 }
+
+export async function addNote(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  const { content } = req.body as { content?: string };
+
+  if (!content || typeof content !== "string" || !content.trim()) {
+    res.status(400).json(error("VALIDATION", "Note content is required"));
+    return;
+  }
+
+  const log = await activityLogsRepo.create({
+    lead_id: id,
+    action: "note_added",
+    description: content.trim(),
+    metadata: { type: "internal_note" },
+  });
+
+  res.status(201).json(success(log));
+}
+
+export async function getNotes(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+
+  const notes = await activityLogsRepo.findByLeadAndAction(id, "note_added");
+
+  res.json(success(notes));
+}

@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useChatbot } from "@/features/chatbot/ChatbotContext";
 
 export function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
   const chatbot = useChatbot();
 
   return (
@@ -27,15 +26,24 @@ export function SiteHeader() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
-          <NavLink href="/qualify" current={location.pathname} onClick={() => {}}>
-            For Founders
-          </NavLink>
-          <NavLink href="/qualify" current={location.pathname} onClick={() => {}}>
-            For Investors
-          </NavLink>
-          <NavLink href="/dashboard" current={location.pathname} onClick={() => {}}>
-            Dashboard
-          </NavLink>
+          <a
+            href="#about"
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            About
+          </a>
+          <a
+            href="#how-it-works"
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            How it Works
+          </a>
+          <Link
+            to="/dashboard"
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            Admin Dashboard
+          </Link>
         </nav>
 
         {/* Desktop CTA */}
@@ -43,9 +51,8 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={chatbot.open}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#0d1428] px-4 py-2 text-sm font-medium text-white transition-all hover:bg-[#1a2540] active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#0d1428] px-5 py-2.5 text-[13px] font-bold text-white transition-all hover:bg-[#1a2540] active:scale-[0.98] shadow-sm"
           >
-            <MessageSquare className="h-3.5 w-3.5" aria-hidden />
             Start Qualification
           </button>
         </div>
@@ -63,33 +70,34 @@ export function SiteHeader() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border animate-fade-in">
+        <div className="md:hidden border-t border-border animate-fade-in bg-white">
           <nav className="container py-3 space-y-1">
-            {[
-              { label: 'For Founders', href: '/qualify' },
-              { label: 'For Investors', href: '/qualify' },
-              { label: 'Dashboard', href: '/dashboard' },
-            ].map((link) => (
-              <Link
-                key={link.label}
-                to={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  'block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                  location.pathname === link.href
-                    ? 'bg-secondary text-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+            <a
+              href="#about"
+              onClick={() => setMobileOpen(false)}
+              className="block w-full text-left rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            >
+              About
+            </a>
+            <a
+              href="#how-it-works"
+              onClick={() => setMobileOpen(false)}
+              className="block w-full text-left rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            >
+              How it Works
+            </a>
+            <Link
+              to="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className="block w-full text-left rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            >
+              Admin Dashboard
+            </Link>
             <button
               type="button"
               onClick={() => { setMobileOpen(false); chatbot.open(); }}
-              className="w-full mt-2 rounded-lg bg-[#0d1428] px-3 py-2.5 text-sm font-medium text-white text-left flex items-center gap-2"
+              className="w-full mt-2 rounded-lg bg-[#0d1428] px-3 py-2.5 text-sm font-bold text-white text-center shadow-sm"
             >
-              <MessageSquare className="h-4 w-4" aria-hidden />
               Start Qualification
             </button>
           </nav>
@@ -99,7 +107,8 @@ export function SiteHeader() {
   );
 }
 
-function NavLink({ href, current, children, onClick }: { href: string; current: string; children: React.ReactNode; onClick: () => void }) {
+// Internal helper — used programmatically in some nav contexts, not rendered in SiteHeader
+function _NavLink({ href, current, children, onClick }: { href: string; current: string; children: React.ReactNode; onClick: () => void }) {
   const isActive = current === href || (href !== '/' && current.startsWith(href));
   return (
     <Link
@@ -116,3 +125,6 @@ function NavLink({ href, current, children, onClick }: { href: string; current: 
     </Link>
   );
 }
+
+// Suppress unused warning
+void _NavLink;

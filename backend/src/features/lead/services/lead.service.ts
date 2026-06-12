@@ -87,30 +87,45 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
   }
 
   const existing = await leadRepo.findByEmail(email);
-  if (existing) {
-    return {
-      lead_id: existing.id,
-      score: existing.score ?? 0,
-      bucket: existing.score_bucket ?? "low",
-      dimensions: [],
-      reasons: [],
-      recommendation: "Lead already exists",
-    };
-  }
 
   const { total, dimensions } = calculateScore(req.type, req.answers);
   const bucket = getBucket(total);
   const bucketLabel = bucket;
 
   const lead = await withTransaction(async (client) => {
-    const l = await leadRepo.create({
-      type: req.type,
-      full_name: (req.answers.full_name as string | undefined) ?? "Unknown",
-      email,
-      phone: (req.answers.phone as string | undefined) ?? null,
-      linkedin_url: (req.answers.linkedin as string | undefined) ?? null,
-      source: "qualification",
-    }, client);
+    let l = existing;
+    
+    if (!l) {
+      l = await leadRepo.create({
+        type: req.type,
+        full_name: (req.answers.full_name as string | undefined) ?? "Unknown",
+        email,
+        phone: (req.answers.phone as string | undefined) ?? null,
+        linkedin_url: (req.answers.linkedin as string | undefined) ?? null,
+        source: "qualification",
+      }, client);
+    } else {
+      // Update basic info for existing lead
+      await query(
+        `UPDATE leads SET 
+          full_name = COALESCE($1, full_name),
+          phone = COALESCE($2, phone),
+          linkedin_url = COALESCE($3, linkedin_url),
+          updated_at = NOW()
+         WHERE id = $4`,
+        [
+          (req.answers.full_name as string | undefined) ?? null,
+          (req.answers.phone as string | undefined) ?? null,
+          (req.answers.linkedin as string | undefined) ?? null,
+          l.id
+        ],
+        client
+      );
+      
+      // Clear out old profiles to insert fresh ones
+      await query(`DELETE FROM founder_profiles WHERE lead_id = $1`, [l.id], client);
+      await query(`DELETE FROM investor_profiles WHERE lead_id = $1`, [l.id], client);
+    }
 
     const fileId =
       req.type === "founder"
@@ -212,14 +227,19 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
       client
     );
 
+    const actionText = existing ? "lead_updated" : "lead_created";
+    const descText = existing 
+      ? `Repeat submission for ${req.type === "founder" ? "Founder" : "Investor"} — new score ${total}`
+      : `${req.type === "founder" ? "Founder" : "Investor"} qualification completed — score ${total}`;
+
     await query(
       `INSERT INTO activity_logs (lead_id, action, description, metadata)
        VALUES ($1, $2, $3, $4)`,
       [
         l.id,
-        "lead_created",
-        `${req.type === "founder" ? "Founder" : "Investor"} qualification completed — score ${total}`,
-        JSON.stringify({ score: total }),
+        actionText,
+        descText,
+        JSON.stringify({ score: total, is_repeat: !!existing }),
       ],
       client
     );
@@ -270,6 +290,14 @@ export async function getLeadById(id: string): Promise<LeadResponse | null> {
     created_at: d.created_at,
   }));
 
+  const { rows: activityLogs } = await query(
+    `SELECT id, action, description, user_id, metadata, created_at 
+     FROM activity_logs 
+     WHERE lead_id = $1 
+     ORDER BY created_at DESC`,
+    [lead.id]
+  );
+
   return {
     id: lead.id,
     type: lead.type,
@@ -292,5 +320,13 @@ export async function getLeadById(id: string): Promise<LeadResponse | null> {
       rationale: s.rationale ?? "",
     })),
     documents: docResponses,
+    activity_log: activityLogs.map(a => ({
+      id: a.id,
+      action: a.action,
+      description: a.description,
+      user_id: a.user_id,
+      metadata: typeof a.metadata === 'string' ? JSON.parse(a.metadata) : a.metadata,
+      created_at: a.created_at,
+    })),
   };
 }

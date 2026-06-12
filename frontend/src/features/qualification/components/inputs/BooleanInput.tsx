@@ -4,9 +4,10 @@ interface BooleanInputProps {
   value: boolean | null;
   onChange: (value: boolean) => void;
   disabled?: boolean;
+  onAutoSubmit?: () => void;
 }
 
-export function BooleanInput({ value, onChange, disabled }: BooleanInputProps) {
+export function BooleanInput({ value, onChange, disabled, onAutoSubmit }: BooleanInputProps) {
   return (
     <div className="flex gap-4" role="radiogroup" aria-label="Yes or No">
       <button
@@ -14,7 +15,10 @@ export function BooleanInput({ value, onChange, disabled }: BooleanInputProps) {
         role="radio"
         aria-checked={value === true}
         disabled={disabled}
-        onClick={() => onChange(true)}
+        onClick={() => {
+          onChange(true);
+          if (onAutoSubmit) setTimeout(onAutoSubmit, 150);
+        }}
         className={cn(
           "flex-1 rounded-xl border-2 px-6 py-4 text-base font-medium transition-all duration-200",
           value === true
@@ -30,7 +34,10 @@ export function BooleanInput({ value, onChange, disabled }: BooleanInputProps) {
         role="radio"
         aria-checked={value === false}
         disabled={disabled}
-        onClick={() => onChange(false)}
+        onClick={() => {
+          onChange(false);
+          if (onAutoSubmit) setTimeout(onAutoSubmit, 150);
+        }}
         className={cn(
           "flex-1 rounded-xl border-2 px-6 py-4 text-base font-medium transition-all duration-200",
           value === false

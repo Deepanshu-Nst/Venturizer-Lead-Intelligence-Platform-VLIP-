@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,32 +6,33 @@
 
 @layer base {
   :root {
-    /* Venturizer Brand Palette */
+    /* Venturizer Brand Palette - Venture Capital Premium */
     --background: 0 0% 100%;
-    --foreground: 222 47% 8%;
+    --foreground: 220 20% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 8%;
+    --card-foreground: 220 20% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 8%;
-    --primary: 222 47% 8%;
+    --popover-foreground: 220 20% 10%;
+    --primary: 220 20% 10%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 8%;
+    --secondary-foreground: 220 20% 10%;
     --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    /* Vivid red accent — Venturizer brand */
-    --accent: 0 72% 51%;
+    --muted-foreground: 220 10% 40%;
+    /* Deep VC Red accent */
+    --accent: 350 80% 45%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 51%;
+    --destructive: 350 80% 45%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 222 47% 8%;
-    --radius: 0.5rem;
+    --ring: 220 20% 10%;
+    /* Sharper corners for premium feel */
+    --radius: 0.25rem;
 
     /* Venturizer-specific tokens */
-    --navy: 222 47% 11%;
-    --navy-dark: 228 39% 7%;
+    --navy: 220 25% 12%;
+    --navy-dark: 220 30% 8%;
     --surface: 220 14% 97%;
     --surface-raised: 0 0% 100%;
   }
@@ -56,8 +57,18 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     letter-spacing: -0.02em;
     line-height: 1.2;
+  }
+
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  h2 {
+    font-weight: 700;
   }
 
   ::selection {
@@ -103,6 +114,30 @@
     @apply text-[11px] font-semibold uppercase tracking-widest text-muted-foreground;
   }
 
+  /* Score band semantic classes */
+  .band-strong-fit {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  .band-qualified {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+  .band-review {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+  .band-low {
+    @apply bg-slate-50 text-slate-500 border-slate-200;
+  }
+
+  /* Internal ERP badge */
+  .erp-badge {
+    @apply inline-flex items-center rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[9px] font-bold text-amber-600 uppercase tracking-wider;
+  }
+
+  /* Applicant outcome card */
+  .outcome-card {
+    @apply rounded-2xl border border-white/10 bg-white/[0.05] overflow-hidden;
+  }
+
   /* Venturizer badge base */
   .v-badge {
     @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium border;
@@ -115,7 +150,10 @@
 }
 
 @layer utilities {
-  /* ── Core animations ── */
+  .animate-shake {
+    animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
   .animate-fade-in {
     animation: fade-in 0.35s ease-out both;
   }
@@ -232,6 +270,13 @@
 @keyframes pulse-ring {
   0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.3); }
   50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
 }
 
 /* ── Chatbot input wrapper — adapts light inputs for dark panel ── */
