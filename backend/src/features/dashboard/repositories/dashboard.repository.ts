@@ -67,14 +67,14 @@ export async function getStatusDistribution(): Promise<StatusDistribution[]> {
   }));
 }
 
-export async function getWeeklyTrend(weeks = 8): Promise<WeeklyTrend[]> {
+export async function getWeeklyTrend(days = 30): Promise<WeeklyTrend[]> {
   const result = await query<{ week: string; count: string }>(`
     SELECT
-      TO_CHAR(DATE_TRUNC('week', created_at), 'YYYY-MM-DD') AS week,
+      TO_CHAR(DATE_TRUNC('day', created_at), 'YYYY-MM-DD') AS week,
       COUNT(*)::text AS count
     FROM leads
-    WHERE created_at >= NOW() - INTERVAL '${weeks} weeks'
-    GROUP BY DATE_TRUNC('week', created_at)
+    WHERE created_at >= NOW() - INTERVAL '${days} days'
+    GROUP BY DATE_TRUNC('day', created_at)
     ORDER BY week ASC
   `);
   return result.rows.map((r) => ({

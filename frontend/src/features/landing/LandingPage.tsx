@@ -1,9 +1,27 @@
 import { ArrowRight, MessageSquare, Zap, Briefcase, TrendingUp, Shield, BarChart3, ChevronRight, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useChatbot } from "@/features/chatbot/ChatbotContext";
+import { useEffect } from "react";
+import Lenis from 'lenis';
 
 export function LandingPage() {
   const chatbot = useChatbot();
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.1,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    return () => lenis.destroy();
+  }, []);
 
   return (
     <div className="animate-fade-in">

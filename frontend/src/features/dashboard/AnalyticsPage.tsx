@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useDashboardSummary } from "@/features/dashboard/hooks/useDashboardSummary";
 import { TrendChart } from "@/features/dashboard/components/Analytics/TrendChart";
 import { SectorChart } from "@/features/dashboard/components/Analytics/SectorChart";
@@ -9,6 +10,11 @@ import {
 
 export function AnalyticsPage() {
   const { summary, loading } = useDashboardSummary();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getStatusCount = (status: string) => {
     return summary?.status_distribution.find(s => s.status === status)?.count ?? 0;
@@ -114,12 +120,12 @@ export function AnalyticsPage() {
                     <TrendingUp className="h-4 w-4 text-muted-foreground/50" />
                     Inbound Volume
                   </h3>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">Weekly lead submissions over time</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Daily lead submissions over time</p>
                 </div>
                 <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-wider">30 days</span>
               </div>
               <div className="p-6">
-                <div className="h-[220px]">
+                <div className="h-[240px]">
                   <TrendChart data={summary?.weekly_trend ?? []} loading={loading} />
                 </div>
               </div>
@@ -197,10 +203,10 @@ export function AnalyticsPage() {
                           fill="none"
                           stroke="#0d1428"
                           strokeWidth="8"
-                          strokeDasharray={`${founderPercent * 2.51} ${251 - founderPercent * 2.51}`}
+                          strokeDasharray={mounted ? `${founderPercent * 2.51} ${251 - founderPercent * 2.51}` : `0 251`}
                           strokeLinecap="round"
                           transform="rotate(-90 50 50)"
-                          className="transition-all duration-700"
+                          className="transition-all duration-1000 ease-out"
                         />
                       </svg>
                       <span className="absolute text-[18px] font-bold text-[#0d1428]">{founderPercent}%</span>
@@ -217,10 +223,10 @@ export function AnalyticsPage() {
                           fill="none"
                           stroke="#10b981"
                           strokeWidth="8"
-                          strokeDasharray={`${investorPercent * 2.51} ${251 - investorPercent * 2.51}`}
+                          strokeDasharray={mounted ? `${investorPercent * 2.51} ${251 - investorPercent * 2.51}` : `0 251`}
                           strokeLinecap="round"
                           transform="rotate(-90 50 50)"
-                          className="transition-all duration-700"
+                          className="transition-all duration-1000 ease-out"
                         />
                       </svg>
                       <span className="absolute text-[18px] font-bold text-emerald-600">{investorPercent}%</span>
@@ -249,7 +255,11 @@ export function AnalyticsPage() {
                     { label: 'Qualified', count: getStatusCount('qualified'), color: 'bg-emerald-500', lightBg: 'bg-emerald-50' },
                     { label: 'Engaged', count: getStatusCount('contacted'), color: 'bg-indigo-500', lightBg: 'bg-indigo-50' },
                   ].map((step, idx, arr) => (
-                    <div key={step.label} className="flex items-center flex-1">
+                    <div 
+                      key={step.label} 
+                      className="flex items-center flex-1 animate-fade-in" 
+                      style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}
+                    >
                       <div className={`flex-1 ${step.lightBg} rounded-xl p-4 text-center border border-border/30 transition-all hover:shadow-sm`}>
                         <div className={`inline-flex h-2 w-2 rounded-full ${step.color} mb-2`} />
                         <p className="text-[24px] font-extrabold text-[#0d1428] tracking-tight leading-none">{step.count}</p>
