@@ -8,7 +8,7 @@ interface SelectInputProps {
   placeholder?: string;
   disabled?: boolean;
   "aria-labelledby"?: string;
-  onAutoSubmit?: () => void;
+  onAutoSubmit?: (value: string) => void;
 }
 
 export function SelectInput({ value, onChange, options, disabled, onAutoSubmit, ...props }: SelectInputProps) {
@@ -31,7 +31,7 @@ export function SelectInput({ value, onChange, options, disabled, onAutoSubmit, 
               // Auto-advance
               if (onAutoSubmit) {
                 // slight delay for UX
-                setTimeout(onAutoSubmit, 150);
+                setTimeout(() => onAutoSubmit(value), 150);
               }
             }}
             className={cn(

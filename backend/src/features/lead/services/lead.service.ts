@@ -191,7 +191,7 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
           (req.answers.investor_type as string | undefined) ?? null,
           (req.answers.preferred_stage as string | undefined) ?? null,
           Array.isArray(req.answers.sector_focus)
-            ? JSON.stringify(req.answers.sector_focus)
+            ? req.answers.sector_focus
             : null,
           req.answers.cheque_min ? Number(req.answers.cheque_min) : null,
           req.answers.cheque_max ? Number(req.answers.cheque_max) : null,
@@ -214,7 +214,7 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
       dimensions.map((d) => ({
         lead_id: l.id,
         dimension: d.dimension,
-        score: d.score,
+        score: Math.max(0, d.score),
         weight: d.weight,
         rationale: d.rationale,
       })),

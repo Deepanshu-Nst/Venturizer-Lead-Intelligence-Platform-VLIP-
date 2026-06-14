@@ -17,39 +17,39 @@ interface BandInfo {
 }
 
 function getBandInfo(score: number): BandInfo {
-  if (score >= 85) {
+  if (score >= 80) {
     return {
       emoji: "🔥",
-      label: "Strong Fit",
-      tagClass: "bg-red-50 text-red-700 border-red-200",
-      action: "Schedule intro call",
+      label: "Hot",
+      tagClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      action: "Immediate outreach + program",
       actionDetail: "Prioritize — reach out within 24 hours",
     };
   }
-  if (score >= 70) {
+  if (score >= 60) {
     return {
       emoji: "✅",
-      label: "Qualified",
-      tagClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      action: "Send intake email",
-      actionDetail: "Follow up with our standard intake questionnaire",
+      label: "Good",
+      tagClass: "bg-blue-50 text-blue-700 border-blue-200",
+      action: "Standard follow-up",
+      actionDetail: "Nurture with weekly check-ins and targeted content",
     };
   }
   if (score >= 40) {
     return {
       emoji: "📋",
-      label: "Worth Reviewing",
+      label: "Maybe",
       tagClass: "bg-amber-50 text-amber-700 border-amber-200",
-      action: "Add to review queue",
-      actionDetail: "Request additional info before proceeding",
+      action: "Request clarification",
+      actionDetail: "Revisit in 30 days after additional engagement",
     };
   }
   return {
     emoji: "📌",
-    label: "Not a Current Fit",
+    label: "Low",
     tagClass: "bg-slate-50 text-slate-500 border-slate-200",
-    action: "Mark as low priority",
-    actionDetail: "Archive — may reapply as circumstances evolve",
+    action: "Polite rejection",
+    actionDetail: "Low priority — monitor for changes in activity",
   };
 }
 
@@ -95,8 +95,8 @@ export function LeadRecommendationCard({ score, type, strengths, concerns }: Omi
               <circle
                 cx="18" cy="18" r="15.9155"
                 stroke={
-                  score >= 85 ? '#dc2626' :
-                  score >= 70 ? '#10b981' :
+                  score >= 80 ? '#10b981' :
+                  score >= 60 ? '#3b82f6' :
                   score >= 40 ? '#f59e0b' : '#94a3b8'
                 }
                 strokeWidth="3"

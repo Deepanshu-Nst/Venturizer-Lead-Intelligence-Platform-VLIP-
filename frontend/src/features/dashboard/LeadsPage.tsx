@@ -95,20 +95,20 @@ export function LeadsPage() {
       {/* Score-to-Action Legend */}
       <div className="flex flex-wrap items-center gap-6 px-2 py-4 mt-8 border-t border-border bg-white rounded-xl shadow-sm">
         <div className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-[12px] font-medium text-emerald-600">85+</span>
-          <span className="text-[12px] font-medium text-muted-foreground">Strong Fit (Schedule Call)</span>
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-50 text-[12px] font-medium text-emerald-600">80+</span>
+          <span className="text-[12px] font-medium text-muted-foreground">Hot (Immediate outreach + program)</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-[12px] font-medium text-blue-600">70+</span>
-          <span className="text-[12px] font-medium text-muted-foreground">Qualified (Review & Intake)</span>
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-50 text-[12px] font-medium text-blue-600">60+</span>
+          <span className="text-[12px] font-medium text-muted-foreground">Good (Standard follow-up)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-50 text-[12px] font-medium text-amber-600">40+</span>
-          <span className="text-[12px] font-medium text-muted-foreground">Under Review (More Info)</span>
+          <span className="text-[12px] font-medium text-muted-foreground">Maybe (Request clarification)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gray-50 text-[12px] font-medium text-gray-500">&lt;40</span>
-          <span className="text-[12px] font-medium text-muted-foreground">Not a Fit (Pass)</span>
+          <span className="text-[12px] font-medium text-muted-foreground">Low (Polite rejection)</span>
         </div>
       </div>
 

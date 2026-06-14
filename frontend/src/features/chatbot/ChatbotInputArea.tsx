@@ -18,7 +18,7 @@ interface ChatbotInputAreaProps {
   question: Question;
   value: unknown;
   onChange: (value: unknown) => void;
-  onSubmit: () => void;
+  onSubmit: (value?: unknown) => void;
   onBack: () => void;
   error: string | null;
   disabled: boolean;
@@ -44,7 +44,7 @@ export function ChatbotInputArea({
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey && question.type !== 'textarea') {
       e.preventDefault();
-      onSubmit();
+      onSubmit(value);
     }
   }
 
@@ -71,13 +71,13 @@ export function ChatbotInputArea({
       case 'number':
         return <NumberInput value={value === undefined || value === null || value === '' ? null : Number(value)} onChange={onChange} placeholder={finalPlaceholder} min={question.validation?.min} max={question.validation?.max} {...commonProps} />;
       case 'select':
-        return <SelectInput value={String(value ?? '')} onChange={onChange} options={question.options ?? []} placeholder={question.placeholder ?? 'Select an option…'} onAutoSubmit={onSubmit} {...commonProps} />;
+        return <SelectInput value={String(value ?? '')} onChange={onChange} options={question.options ?? []} placeholder={question.placeholder ?? 'Select an option…'} onAutoSubmit={(val) => onSubmit(val)} {...commonProps} />;
       case 'multiselect':
         return <MultiSelectInput value={Array.isArray(value) ? value : []} onChange={onChange} options={question.options ?? []} {...commonProps} />;
       case 'textarea':
         return <TextAreaInput value={String(value ?? '')} onChange={onChange} placeholder={finalPlaceholder} {...commonProps} />;
       case 'boolean':
-        return <BooleanInput value={value === true || value === false ? (value as boolean) : null} onChange={onChange} onAutoSubmit={onSubmit} {...commonProps} />;
+        return <BooleanInput value={value === true || value === false ? (value as boolean) : null} onChange={onChange} onAutoSubmit={(val) => onSubmit(val)} {...commonProps} />;
       case 'file':
         return <FileUploadInput value={typeof value === 'string' ? value : null} onChange={(v) => onChange(v)} documentType={documentType} {...commonProps} />;
       default:
@@ -121,7 +121,7 @@ export function ChatbotInputArea({
         <button
           id="chatbot-submit-btn"
           type="button"
-          onClick={onSubmit}
+          onClick={() => onSubmit(value)}
           disabled={disabled}
           className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white h-10 text-[13px] font-bold text-[#0d1428] transition-all hover:bg-white/90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
         >

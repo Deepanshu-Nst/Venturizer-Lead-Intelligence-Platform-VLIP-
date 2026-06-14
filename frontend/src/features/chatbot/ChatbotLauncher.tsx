@@ -1,8 +1,14 @@
 import { MessageSquare, X } from "lucide-react";
 import { useChatbot } from "./ChatbotContext";
+import { useLocation } from "react-router-dom";
 
 export function ChatbotLauncher() {
   const { isOpen, toggle } = useChatbot();
+  const location = useLocation();
+
+  if (location.pathname.startsWith('/dashboard')) {
+    return null;
+  }
 
   return (
     <button
@@ -33,7 +39,7 @@ export function ChatbotLauncher() {
             aria-hidden
           />
           <MessageSquare className="h-4 w-4 flex-none" aria-hidden />
-          <span className="text-[14px] font-semibold tracking-tight">Start Qualification</span>
+          <span className="text-[14px] font-semibold tracking-tight">Start Venturizing</span>
         </>
       )}
     </button>

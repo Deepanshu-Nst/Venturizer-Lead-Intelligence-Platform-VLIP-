@@ -2,35 +2,35 @@ import type { ScoreRule, ScoreOutput, ScoreDimension, ScoreBucket } from "./scor
 import { getRules } from "./score-rules.js";
 
 export function getBucket(score: number): ScoreBucket {
-  if (score >= 70) return "hot";
-  if (score >= 45) return "good";
-  if (score >= 25) return "maybe";
+  if (score >= 80) return "hot";
+  if (score >= 60) return "good";
+  if (score >= 40) return "maybe";
   return "low";
 }
 
 export function getRecommendation(bucket: ScoreBucket): string {
   switch (bucket) {
     case "hot":
-      return "Schedule intro call within 24 hours";
+      return "Immediate outreach + program";
     case "good":
-      return "Nurture with weekly check-ins and targeted content";
+      return "Standard follow-up";
     case "maybe":
-      return "Revisit in 30 days after additional engagement";
+      return "Request clarification";
     case "low":
-      return "Low priority — monitor for changes in activity";
+      return "Polite rejection";
   }
 }
 
 export function getExplanation(bucket: ScoreBucket): string {
   switch (bucket) {
     case "hot":
-      return "Strong venture-fit profile with significant execution evidence.";
+      return "Score 80-100: Top tier fit for immediate outreach and program inclusion.";
     case "good":
-      return "Promising founder with measurable progress and moderate venture readiness.";
+      return "Score 60-79: Solid profile warranting standard follow-up and engagement.";
     case "maybe":
-      return "Early-stage opportunity requiring additional validation.";
+      return "Score 40-59: Unclear or borderline fit, request clarification.";
     case "low":
-      return "Currently below investment readiness thresholds.";
+      return "Score 0-39: Below threshold for current mandate, send polite rejection.";
   }
 }
 
@@ -51,10 +51,10 @@ export function calculateWithRules(
     });
   }
 
-  const total = Math.round(Math.min(
+  const total = Math.round(Math.max(0, Math.min(
     dimensions.reduce((sum, d) => sum + d.score, 0),
     100
-  ));
+  )));
 
   const maxTotal = Math.min(
     dimensions.reduce((sum, d) => sum + d.weight, 0),

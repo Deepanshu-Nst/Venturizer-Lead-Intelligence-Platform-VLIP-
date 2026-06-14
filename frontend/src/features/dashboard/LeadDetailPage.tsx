@@ -7,10 +7,11 @@ import { PdfViewer } from "@/features/dashboard/components/PdfViewer";
 import { DetailSkeleton } from "@/features/dashboard/components/LoadingSkeleton";
 import type { LeadDetail } from "@/features/dashboard/types/dashboard";
 import { useMemo, useState } from "react";
+import { api } from "@/features/dashboard/services/api";
 
 const bucketStyles: Record<string, string> = {
-  hot: "text-red-600 bg-red-50 border-red-200",
-  good: "text-emerald-600 bg-emerald-50 border-emerald-200",
+  hot: "text-emerald-600 bg-emerald-50 border-emerald-200",
+  good: "text-blue-600 bg-blue-50 border-blue-200",
   maybe: "text-amber-600 bg-amber-50 border-amber-200",
   low: "text-slate-500 bg-slate-50 border-slate-200",
 };
@@ -32,18 +33,7 @@ export function LeadDetailPage() {
     if (!lead) return;
     setStatusUpdating(true);
     try {
-      const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
-      const res = await fetch(`/api/v1/dashboard/leads/${lead.id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(apiKey ? { "x-api-key": apiKey } : {}),
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (!res.ok) {
-        console.error("[LeadDetailPage] status update failed:", res.status, await res.text().catch(() => ""));
-      }
+      await api.patch(`/dashboard/leads/${lead.id}/status`, { status: newStatus });
       refetch();
     } catch (err) {
       console.error("[LeadDetailPage] status update error:", err);
@@ -136,14 +126,12 @@ export function LeadDetailPage() {
               </span>
             )}
           </div>
-          <p className="text-xs text-muted-foreground font-mono mt-0.5">{lead.id}</p>
+          <p className="text-[13px] text-muted-foreground font-mono mt-1">{lead.id}</p>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          <ProfileSection lead={lead} />
-
           {qualification && (
             <>
               {(qualification.strengths.length > 0 ||
@@ -153,8 +141,8 @@ export function LeadDetailPage() {
             </>
           )}
 
+          <ProfileSection lead={lead} />
           <AnswersSection lead={lead} />
-
           <ActivitySection lead={lead} />
         </div>
 
@@ -179,7 +167,7 @@ export function LeadDetailPage() {
 function ProfileSection({ lead }: { lead: LeadDetail }) {
   const profile = lead.profile as Record<string, unknown> | null;
   return (
-    <section className="rounded-lg border border-border p-5">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
       <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
         <Shield className="h-4 w-4 text-muted-foreground/60" />
         Profile
@@ -268,7 +256,7 @@ function QualificationSection({
   qualification: { strengths: string[]; concerns: string[]; explanation: string; recommendation: string };
 }) {
   return (
-    <section className="rounded-lg border border-border p-5 space-y-4">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6 space-y-4">
       <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
         <Lightbulb className="h-4 w-4 text-muted-foreground/60" />
         Qualification Summary
@@ -324,7 +312,7 @@ function AnswersSection({ lead }: { lead: LeadDetail }) {
   const profile = lead.profile as Record<string, unknown> | null;
   if (!profile || Object.keys(profile).length === 0) {
     return (
-      <section className="rounded-lg border border-border p-5">
+      <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
         <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground/60" />
           Qualification Answers
@@ -401,7 +389,7 @@ function AnswersSection({ lead }: { lead: LeadDetail }) {
   const stageOrder = ["personal", "background", "startup", "product", "traction", "team", "fundraising", "profile", "strategy", "timeline"];
 
   return (
-    <section className="rounded-lg border border-border p-5">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
       <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
         <FileText className="h-4 w-4 text-muted-foreground/60" />
         Qualification Answers
@@ -414,13 +402,13 @@ function AnswersSection({ lead }: { lead: LeadDetail }) {
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                 {stageLabels[stage] ?? stage}
               </h3>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                 {grouped[stage].map((item) => (
-                  <div key={item.key} className="text-sm">
-                    <span className="text-muted-foreground/70 block text-xs">
+                  <div key={item.key} className="text-[13px]">
+                    <span className="text-muted-foreground/70 block text-[11px] font-semibold uppercase tracking-wider mb-1">
                       {item.key}
                     </span>
-                    <span className="text-foreground">{item.value}</span>
+                    <span className="text-foreground font-medium">{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -439,7 +427,7 @@ function ScoreSection({
   qualification: { strengths: string[]; concerns: string[]; explanation: string; recommendation: string } | null;
 }) {
   return (
-    <section className="rounded-lg border border-border p-5">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
       <h2 className="text-sm font-semibold text-foreground mb-4">Score</h2>
 
       {lead.score !== null && (
@@ -509,7 +497,7 @@ function StatusSection({
   updating: boolean;
 }) {
   return (
-    <section className="rounded-lg border border-border p-5">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
       <h2 className="text-sm font-semibold text-foreground mb-3">Status</h2>
       <div className="flex flex-wrap gap-1.5">
         {statusOptions.map((opt) => {
@@ -538,7 +526,7 @@ function StatusSection({
 function DocumentsSection({ lead }: { lead: LeadDetail }) {
   if (lead.documents.length === 0) {
     return (
-      <section className="rounded-lg border border-border p-5">
+      <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
         <h2 className="text-sm font-semibold text-foreground mb-1">Documents</h2>
         <p className="text-xs text-muted-foreground">No documents uploaded.</p>
       </section>
@@ -546,7 +534,7 @@ function DocumentsSection({ lead }: { lead: LeadDetail }) {
   }
 
   return (
-    <section className="rounded-lg border border-border p-5">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
       <h2 className="text-sm font-semibold text-foreground mb-3">Documents</h2>
       <div className="space-y-2">
         {lead.documents.map((doc) => (
@@ -565,7 +553,7 @@ function DocumentsSection({ lead }: { lead: LeadDetail }) {
 function ActivitySection({ lead }: { lead: LeadDetail }) {
   if (lead.activity_log.length === 0) {
     return (
-      <section className="rounded-lg border border-border p-5">
+      <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
         <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Activity className="h-4 w-4 text-muted-foreground/60" />
           Activity
@@ -576,7 +564,7 @@ function ActivitySection({ lead }: { lead: LeadDetail }) {
   }
 
   return (
-    <section className="rounded-lg border border-border p-5">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
       <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
         <Activity className="h-4 w-4 text-muted-foreground/60" />
         Activity
@@ -602,7 +590,7 @@ function ActivitySection({ lead }: { lead: LeadDetail }) {
 
 function NotesSection() {
   return (
-    <section className="rounded-lg border border-border p-5">
+    <section className="rounded-2xl border border-border/50 bg-white shadow-sm p-6">
       <h2 className="text-sm font-semibold text-foreground mb-1">Notes</h2>
       <p className="text-xs text-muted-foreground mb-3">
         Internal notes and team comments.

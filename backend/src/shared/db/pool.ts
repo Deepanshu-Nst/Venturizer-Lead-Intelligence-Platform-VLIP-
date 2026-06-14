@@ -14,7 +14,7 @@ export const pool = new Pool({
 
 pool.on("error", (err) => {
   console.error("Unexpected database pool error:", err);
-  process.exit(-1);
+  // Do not exit the process. The pool will automatically try to reconnect or create new connections.
 });
 
 export async function query<T extends pg.QueryResultRow = any>(

@@ -69,6 +69,43 @@ function avgTextLength(answers: Record<string, unknown>): number {
   return count > 0 ? total / count : 0;
 }
 
+/** Detects low-quality / gibberish text.
+ *  Returns true if the text appears to be random characters, repeated words,
+ *  or lacks any real English structure. */
+function isLowQualityText(text: string): boolean {
+  if (text.length < 5) return true;
+  const lower = text.toLowerCase().trim();
+  // Check for excessive uppercase ratio (common in spam)
+  const upperRatio = (text.match(/[A-Z]/g) || []).length / text.length;
+  if (upperRatio > 0.7 && text.length > 10) return true;
+  // Check for very few actual words (< 3 space-separated tokens with 3+ chars)
+  const words = lower.split(/\s+/).filter(w => w.length >= 3);
+  if (words.length < 3 && text.length > 20) return true;
+  // Check for high ratio of non-alphabetic chars
+  const alphaChars = (lower.match(/[a-z]/g) || []).length;
+  if (alphaChars / lower.length < 0.5 && text.length > 10) return true;
+  // Check if it's just repeating patterns
+  const uniqueWords = new Set(words);
+  if (words.length > 4 && uniqueWords.size < words.length * 0.3) return true;
+  return false;
+}
+
+/** Checks if critical text answers show real substance vs. gaming. */
+function getQualityPenalty(answers: Record<string, unknown>): number {
+  const problem = str(answers.problem_statement);
+  const target = str(answers.target_customer);
+  let penalty = 0;
+  if (problem.length > 0 && isLowQualityText(problem)) penalty += 15;
+  if (target.length > 0 && isLowQualityText(target)) penalty += 5;
+  // Check for suspiciously round/extreme numbers with low-quality text
+  const users = num(answers.active_users);
+  const revenue = num(answers.monthly_revenue);
+  if ((users >= 1000000 || revenue >= 1000000) && (penalty > 0)) {
+    penalty += 10; // Extreme numbers + gibberish = likely gaming
+  }
+  return penalty;
+}
+
 // ---------------------------------------------------------------------------
 // Experience (10) — previous startup + industry experience
 // ---------------------------------------------------------------------------
@@ -106,6 +143,15 @@ const founderMarketFit: ScoreRule = {
     const years = num(answers.industry_experience);
     const problem = str(answers.problem_statement);
     const target = str(answers.target_customer);
+
+    // If problem statement is gibberish, this dimension scores 0
+    if (problem.length > 0 && isLowQualityText(problem)) {
+      return {
+        score: 0,
+        maxScore: 10,
+        rationale: `Problem statement quality too low for founder-market fit assessment`,
+      };
+    }
 
     // Problem depth (0–3)
     const problemDepth =
@@ -152,6 +198,9 @@ const problemMarket: ScoreRule = {
     const target = str(answers.target_customer);
     const industry = str(answers.industry);
 
+    // If problem statement is gibberish, cap the whole dimension at 2
+    const isGibberish = problem.length > 0 && isLowQualityText(problem);
+
     // Problem clarity (0–6) — requires real substance
     const clarity =
       problem.length >= 500 ? 6 :
@@ -175,15 +224,16 @@ const problemMarket: ScoreRule = {
       "logistics", "manufacturing", "energy",
     ];
     const industryScore = knownIndustries.includes(industry.toLowerCase()) ? 4 :
-      industry.length > 0 ? 2 : 0;
+      (industry.length > 0 && industry.toLowerCase() !== "other") ? 2 : 0;
 
-    const score = Math.min(clarity + marketUnderstanding + industryScore, 15);
+    let score = Math.min(clarity + marketUnderstanding + industryScore, 15);
+    if (isGibberish) score = Math.min(score, 2);
 
     return {
       score,
       maxScore: 15,
       rationale:
-        `Problem clarity: ${problem.length}c (${clarity}/6), ` +
+        `Problem clarity: ${problem.length}c (${clarity}/6)${isGibberish ? ' [LOW QUALITY]' : ''}, ` +
         `Market understanding: ${target.length}c (${marketUnderstanding}/5), ` +
         `Industry: ${industry || "none"} (${industryScore}/4)`,
     };
@@ -375,6 +425,16 @@ const evidenceQuality: ScoreRule = {
   evaluator(answers: Record<string, unknown>): ScoreResult {
     const nonEmpty = nonEmptyCount(answers);
     const avgLen = avgTextLength(answers);
+    const qualityPenalty = getQualityPenalty(answers);
+
+    // If there's a quality penalty, this dimension is 0 and penalty carries forward
+    if (qualityPenalty > 0) {
+      return {
+        score: -qualityPenalty, // Negative score to penalize overall total
+        maxScore: 5,
+        rationale: `Quality penalty: -${qualityPenalty} (gibberish/gaming detected in text answers)`,
+      };
+    }
 
     // Completeness (0–2)
     const textFields = [
@@ -384,7 +444,7 @@ const evidenceQuality: ScoreRule = {
     let completeness = 0;
     for (const field of textFields) {
       const val = str(answers[field]);
-      if (val.length >= 20) completeness++;
+      if (val.length >= 20 && !isLowQualityText(val)) completeness++;
     }
     const completenessScore = Math.min(completeness, 2);
 

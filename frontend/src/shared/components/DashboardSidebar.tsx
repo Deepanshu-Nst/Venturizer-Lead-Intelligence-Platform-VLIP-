@@ -39,15 +39,18 @@ export function DashboardSidebar() {
               key={item.href}
               to={item.href}
               className={cn(
-                'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-150',
+                'group flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-[13px] font-medium transition-colors duration-200',
                 isActive
-                  ? 'bg-[#0d1428] text-white shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  ? 'bg-[#0d1428] text-white shadow-[0_2px_8px_rgba(13,20,40,0.15)]'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-[#0d1428]/[0.03]'
               )}
             >
-              <item.icon className={cn('h-4 w-4 flex-none', isActive ? 'text-white' : 'text-muted-foreground group-hover:text-foreground')} />
-              {item.label}
-              {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/40" />}
+              <item.icon 
+                strokeWidth={1.75}
+                className={cn('h-4 w-4 flex-none transition-colors duration-200', isActive ? 'text-white' : 'text-muted-foreground group-hover:text-foreground')} 
+              />
+              <span className="flex-1 truncate">{item.label}</span>
+              {isActive && <span className="ml-auto h-1 w-1 rounded-full bg-white/70 shadow-[0_0_4px_rgba(255,255,255,0.5)]" />}
             </Link>
           );
         })}

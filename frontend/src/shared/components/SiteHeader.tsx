@@ -9,8 +9,8 @@ export function SiteHeader() {
   const chatbot = useChatbot();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="container flex h-15 items-center justify-between" style={{ height: '60px' }}>
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-white/70 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] transition-all duration-300">
+      <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0d1428] transition-opacity group-hover:opacity-85">
@@ -51,9 +51,9 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={chatbot.open}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#0d1428] px-5 py-2.5 text-[13px] font-bold text-white transition-all hover:bg-[#1a2540] active:scale-[0.98] shadow-sm"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#0d1428] to-[#1a2540] px-5 py-2.5 text-[13px] font-bold text-white shadow-md shadow-[#0d1428]/10 transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] border border-[#0d1428]"
           >
-            Start Qualification
+            Start Venturizing
           </button>
         </div>
 
@@ -96,9 +96,9 @@ export function SiteHeader() {
             <button
               type="button"
               onClick={() => { setMobileOpen(false); chatbot.open(); }}
-              className="w-full mt-2 rounded-lg bg-[#0d1428] px-3 py-2.5 text-sm font-bold text-white text-center shadow-sm"
+              className="w-full mt-2 rounded-xl bg-gradient-to-b from-[#0d1428] to-[#1a2540] px-3 py-3 text-sm font-bold text-white text-center shadow-md border border-[#0d1428]"
             >
-              Start Qualification
+              Start Venturizing
             </button>
           </nav>
         </div>

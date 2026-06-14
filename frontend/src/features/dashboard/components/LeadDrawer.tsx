@@ -5,6 +5,7 @@ import { useLeadDetail } from "@/features/dashboard/hooks/useLeadDetail";
 import { formatDate } from "@/shared/lib/utils";
 import { generateQualificationSummary } from "@/features/dashboard/lib/qualificationReasoning";
 import { PdfViewer } from "@/features/dashboard/components/PdfViewer";
+import { api } from "@/features/dashboard/services/api";
 
 interface LeadDrawerProps {
   leadId: string | null;
@@ -13,10 +14,10 @@ interface LeadDrawerProps {
 }
 
 const bucketConfig: Record<string, { className: string; bar: string; label: string; action: string }> = {
-  hot: { className: 'bg-red-50 text-red-700 border-red-200', bar: 'bg-[#dc2626]', label: '🔥 Strong Fit', action: 'Schedule intro call within 24 hours' },
-  good: { className: 'bg-emerald-50 text-emerald-700 border-emerald-200', bar: 'bg-emerald-500', label: '✅ Qualified', action: 'Send intake email' },
-  maybe: { className: 'bg-amber-50 text-amber-700 border-amber-200', bar: 'bg-amber-400', label: '📋 Worth Reviewing', action: 'Add to review queue' },
-  low: { className: 'bg-slate-50 text-slate-500 border-slate-200', bar: 'bg-slate-300', label: '📌 Not a Current Fit', action: 'Mark as low priority' },
+  hot: { className: 'bg-emerald-50 text-emerald-700 border-emerald-200', bar: 'bg-emerald-500', label: '🔥 Hot', action: 'Immediate outreach + program' },
+  good: { className: 'bg-blue-50 text-blue-700 border-blue-200', bar: 'bg-blue-500', label: '✅ Good', action: 'Standard follow-up' },
+  maybe: { className: 'bg-amber-50 text-amber-700 border-amber-200', bar: 'bg-amber-400', label: '📋 Maybe', action: 'Request clarification' },
+  low: { className: 'bg-slate-50 text-slate-500 border-slate-200', bar: 'bg-slate-300', label: '📌 Low', action: 'Polite rejection' },
 };
 
 export function LeadDrawer({ leadId, onClose, onViewFullProfile }: LeadDrawerProps) {
@@ -43,14 +44,8 @@ export function LeadDrawer({ leadId, onClose, onViewFullProfile }: LeadDrawerPro
     if (!lead) return;
     setStatusUpdating(true);
     try {
-      const res = await fetch(`/api/v1/dashboard/leads/${lead.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (res.ok) {
-        await refetch();
-      }
+      await api.patch(`/dashboard/leads/${lead.id}/status`, { status: newStatus });
+      await refetch();
     } catch (err) {
       console.error('Failed to update status', err);
     } finally {
@@ -125,7 +120,7 @@ export function LeadDrawer({ leadId, onClose, onViewFullProfile }: LeadDrawerPro
                   <span className="text-[32px] font-bold text-foreground leading-none">{lead.score}</span>
                   <span className="text-[14px] text-muted-foreground font-medium">/100</span>
                 </div>
-                {lead.score_bucket && (
+                {lead.score_bucket && bucketConfig[lead.score_bucket] && (
                   <span className={`inline-block mt-1.5 px-2 py-0.5 text-[11px] font-bold rounded-full ${bucketConfig[lead.score_bucket].className}`}>
                     {bucketConfig[lead.score_bucket].label}
                   </span>

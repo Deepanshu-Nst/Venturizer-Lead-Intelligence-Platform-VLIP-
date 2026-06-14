@@ -29,10 +29,10 @@ export function MultiSelectInput({ value, onChange, options, disabled }: MultiSe
             aria-pressed={selected}
             onClick={() => toggle(option.value)}
             className={cn(
-              "rounded-full border px-4 py-2 text-sm transition-all duration-200",
+              "rounded-full border px-4 py-2 text-[13px] font-semibold transition-all duration-200 active:scale-[0.98]",
               selected
-                ? "border-foreground bg-foreground text-background font-medium"
-                : "border-border bg-background text-muted-foreground hover:border-foreground/40 hover:text-foreground",
+                ? "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                : "border-white/[0.15] bg-white/[0.04] text-white/70 hover:border-white/[0.3] hover:bg-white/[0.08] hover:text-white",
               disabled && "opacity-50 cursor-not-allowed"
             )}
           >

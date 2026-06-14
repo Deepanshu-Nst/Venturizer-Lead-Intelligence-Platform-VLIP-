@@ -18,6 +18,7 @@ export const config = {
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
+      maxUses: 100,
     },
   },
 

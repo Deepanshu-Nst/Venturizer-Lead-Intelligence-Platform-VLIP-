@@ -19,10 +19,6 @@ const LeadsPage = lazy(() =>
   import("@/features/dashboard/LeadsPage").then((m) => ({ default: m.LeadsPage }))
 );
 
-const SettingsPage = lazy(() =>
-  import("@/features/dashboard/SettingsPage").then((m) => ({ default: m.SettingsPage }))
-);
-
 export default function App() {
   return (
     <ChatbotProvider>
@@ -47,11 +43,6 @@ export default function App() {
             </Suspense>
           } />
           <Route path="leads/:id" element={<LeadDetailPage />} />
-          <Route path="settings" element={
-            <Suspense fallback={<div />}>
-              <SettingsPage />
-            </Suspense>
-          } />
           <Route
             path="analytics"
             element={

@@ -151,7 +151,7 @@ function CompletionOutcomeCard({
       <div className="mt-4 space-y-2">
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => { window.location.href = '/'; }}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-[13px] font-semibold text-[#0d1428] hover:bg-white/90 transition-colors"
         >
           <Home className="h-3.5 w-3.5" aria-hidden />
@@ -314,16 +314,25 @@ export function ChatbotConversation() {
   const handleAnswer = useCallback((value: unknown) => {
     if (!state.questions[state.currentIndex]) return;
     const currentQuestion = state.questions[state.currentIndex]!;
-    const error = validateField(currentQuestion, value);
-    setFieldError(error);
+    // Clear field error on any change so the user sees their input is acknowledged
+    setFieldError(null);
     answer(currentQuestion.id, value);
   }, [state.questions, state.currentIndex, answer]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (overrideValue?: unknown) => {
     const currentQuestion = state.questions[state.currentIndex];
     if (!currentQuestion || isSubmittingRef.current) return;
 
-    const currentValue = state.answers[currentQuestion.id];
+    // Use overrideValue (passed from the button/input) if provided,
+    // otherwise fall back to saved state. This fixes the "double click" bug
+    // where React state hasn't flushed yet from handleAnswer.
+    const currentValue = overrideValue !== undefined ? overrideValue : state.answers[currentQuestion.id];
+
+    // Store the answer into state immediately so submission has the latest data
+    if (overrideValue !== undefined) {
+      answer(currentQuestion.id, overrideValue);
+    }
+
     const error = validateField(currentQuestion, currentValue);
     if (error) { setFieldError(error); return; }
     
@@ -361,7 +370,12 @@ export function ChatbotConversation() {
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       try {
-        const body: Record<string, unknown> = { type: state.flowType, answers: state.answers };
+        // Build final answers: merge current state with the overrideValue
+        const finalAnswers = { ...state.answers };
+        if (overrideValue !== undefined) {
+          finalAnswers[currentQuestion.id] = overrideValue;
+        }
+        const body: Record<string, unknown> = { type: state.flowType, answers: finalAnswers };
         if (state.sessionId) body.sessionId = state.sessionId;
 
         const res = await fetch('/api/v1/lead/submit', {
@@ -371,8 +385,13 @@ export function ChatbotConversation() {
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error?.message ?? 'Submission failed');
+        let json;
+        try {
+          json = await res.json();
+        } catch (e) {
+          throw new Error(res.ok ? 'Failed to parse response' : `Server connection error (${res.status}). Please check if the backend is running.`);
+        }
+        if (!res.ok) throw new Error(json?.error?.message ?? 'Submission failed');
 
         isSubmittingRef.current = false;
         setIsSubmitting(false);
@@ -399,7 +418,7 @@ export function ChatbotConversation() {
     goNext();
     const nextQuestion = state.questions[state.currentIndex + 1];
     if (nextQuestion) await addBotMessage(nextQuestion.question, 750);
-  }, [state, addUserMessage, addBotMessage, submitStart, submitDone, dispatchSubmitError, clearSubmitError, goNext]);
+  }, [state, answer, addUserMessage, addBotMessage, submitStart, submitDone, dispatchSubmitError, clearSubmitError, goNext]);
 
   const handleBack = useCallback(() => {
     if (state.currentIndex === 0) return;
@@ -559,7 +578,7 @@ export function ChatbotConversation() {
           question={currentQuestion!}
           value={currentValue}
           onChange={handleAnswer}
-          onSubmit={handleSubmit}
+          onSubmit={(val) => handleSubmit(val)}
           onBack={handleBack}
           error={fieldError?.message ?? null}
           disabled={isSubmitting}

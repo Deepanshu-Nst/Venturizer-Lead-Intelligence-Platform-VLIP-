@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS leads (
   phone           VARCHAR(50),
   linkedin_url    VARCHAR(500),
   status          VARCHAR(20) NOT NULL DEFAULT 'new'
-                    CHECK (status IN ('new', 'contacted', 'qualified', 'disqualified', 'archived')),
+                    CHECK (status IN ('new', 'reviewing', 'contacted', 'qualified', 'rejected', 'converted', 'disqualified', 'archived')),
   score           INTEGER CHECK (score >= 0 AND score <= 100),
   score_bucket    VARCHAR(10) CHECK (score_bucket IN ('hot', 'good', 'maybe', 'low')),
   assigned_to     UUID REFERENCES users(id) ON DELETE SET NULL,

@@ -19,7 +19,7 @@ export function validateField(
   }
 
   const validation = question.validation as Validation | undefined;
-  if (!validation || value === undefined || value === null || value === "") {
+  if (value === undefined || value === null || value === "") {
     return null;
   }
 
@@ -32,7 +32,7 @@ export function validateField(
       break;
     }
     case "tel": {
-      const phoneRegex = /^\+?[1-9]\d{9,15}$/;
+      const phoneRegex = /^\+?\d{10,16}$/;
       if (!phoneRegex.test(String(value).replace(/[\s-()]/g, ''))) {
         return { field: question.id, message: "Please enter a valid phone number (10-16 digits)" };
       }
@@ -43,7 +43,7 @@ export function validateField(
       if (!urlRegex.test(String(value))) {
         return { field: question.id, message: "Please enter a valid URL (e.g., https://example.com)" };
       }
-      if (validation.pattern && !String(value).includes(validation.pattern)) {
+      if (validation?.pattern && !String(value).includes(validation.pattern)) {
         return {
           field: question.id,
           message: `URL must contain ${validation.pattern}`,
@@ -56,13 +56,13 @@ export function validateField(
       if (isNaN(num)) {
         return { field: question.id, message: "Please enter a valid number" };
       }
-      if (validation.min !== undefined && num < validation.min) {
+      if (validation?.min !== undefined && num < validation.min) {
         return {
           field: question.id,
           message: `Minimum value is ${validation.min}`,
         };
       }
-      if (validation.max !== undefined && num > validation.max) {
+      if (validation?.max !== undefined && num > validation.max) {
         return {
           field: question.id,
           message: `Maximum value is ${validation.max}`,
@@ -73,13 +73,13 @@ export function validateField(
     case "text":
     case "textarea": {
       const str = String(value);
-      if (validation.minLength && str.length < validation.minLength) {
+      if (validation?.minLength && str.length < validation.minLength) {
         return {
           field: question.id,
           message: `Minimum ${validation.minLength} characters required`,
         };
       }
-      if (validation.maxLength && str.length > validation.maxLength) {
+      if (validation?.maxLength && str.length > validation.maxLength) {
         return {
           field: question.id,
           message: `Maximum ${validation.maxLength} characters allowed`,

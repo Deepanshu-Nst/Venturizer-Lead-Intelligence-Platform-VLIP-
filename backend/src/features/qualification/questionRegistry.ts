@@ -10,9 +10,8 @@ const founderQuestions: Question[] = [
   { id: "commitment", question: "Are you working on this full-time or part-time?", type: "select", stage: "background", required: true, options: [{ value: "full-time", label: "Full-time" }, { value: "part-time", label: "Part-time" }] },
   { id: "startup_name", question: "What is your startup called?", type: "text", stage: "startup", required: true },
   { id: "industry", question: "Which industry are you in?", type: "select", stage: "startup", required: true, options: [
-    { value: "fintech", label: "Fintech" }, { value: "health", label: "Health / Bio" }, { value: "saas", label: "SaaS" }, { value: "ai-ml", label: "AI / ML" },
-    { value: "climate", label: "Climate / Energy" }, { value: "edtech", label: "Edtech" }, { value: "ecommerce", label: "E-commerce" }, { value: "other", label: "Other" },
-  ]},
+    { value: "fintech", label: "Fintech" }, { value: "health", label: "Health / Bio" }, { value: "saas", label: "SaaS" }, { value: "ai-ml", label: "AI / ML" }, { value: "climate", label: "Climate / Energy" }, { value: "edtech", label: "Edtech" }, { value: "ecommerce", label: "E-commerce" }, { value: "consumer", label: "Consumer" }, { value: "web3", label: "Web3 / Crypto" }, { value: "hardtech", label: "Hardtech / Robotics" }, { value: "space", label: "Space / Defense" }, { value: "other", label: "Other" }
+  ] },
   { id: "problem_statement", question: "What problem are you solving?", type: "textarea", stage: "startup", required: true, validation: { minLength: 50 } },
   { id: "target_customer", question: "Who is your target customer?", type: "text", stage: "startup", required: true },
   { id: "mvp_status", question: "What is your current MVP status?", type: "select", stage: "product", required: true, options: [

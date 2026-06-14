@@ -4,7 +4,7 @@ interface BooleanInputProps {
   value: boolean | null;
   onChange: (value: boolean) => void;
   disabled?: boolean;
-  onAutoSubmit?: () => void;
+  onAutoSubmit?: (value: boolean) => void;
 }
 
 export function BooleanInput({ value, onChange, disabled, onAutoSubmit }: BooleanInputProps) {

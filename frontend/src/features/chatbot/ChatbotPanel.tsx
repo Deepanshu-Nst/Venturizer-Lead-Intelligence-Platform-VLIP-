@@ -68,11 +68,11 @@ export function ChatbotPanel() {
         aria-label="Venturizer Qualification Assistant"
         className={[
           // Base
-          'fixed z-50 flex flex-col bg-[#0d1428]',
+          'fixed z-50 flex flex-col bg-[#0d1428]/95 backdrop-blur-3xl border border-white/10',
           // Mobile: full-screen bottom sheet
           'inset-x-0 bottom-0 rounded-t-2xl max-h-[92dvh]',
           // Desktop: right-side drawer
-          'lg:inset-x-auto lg:right-6 lg:bottom-6 lg:top-auto lg:w-[420px] lg:h-[680px] lg:rounded-2xl lg:max-h-[calc(100dvh-96px)]',
+          'lg:inset-x-auto lg:right-6 lg:bottom-6 lg:top-auto lg:w-[480px] lg:h-[780px] lg:rounded-2xl lg:max-h-[calc(100dvh-96px)]',
           // Shadow
           'shadow-[0_40px_100px_rgba(0,0,0,0.55)]',
           // Transition

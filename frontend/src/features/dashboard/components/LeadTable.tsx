@@ -19,8 +19,8 @@ interface LeadTableProps {
 }
 
 const bucketConfig: Record<string, { label: string; className: string; dotColor: string }> = {
-  hot: { label: 'Hot', className: 'bg-red-50 text-red-700 border-red-200', dotColor: 'bg-red-500' },
-  good: { label: 'Good', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dotColor: 'bg-emerald-500' },
+  hot: { label: 'Hot', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', dotColor: 'bg-emerald-500' },
+  good: { label: 'Good', className: 'bg-blue-50 text-blue-700 border-blue-200', dotColor: 'bg-blue-500' },
   maybe: { label: 'Maybe', className: 'bg-amber-50 text-amber-700 border-amber-200', dotColor: 'bg-amber-500' },
   low: { label: 'Low', className: 'bg-slate-50 text-slate-500 border-slate-200', dotColor: 'bg-slate-400' },
 };

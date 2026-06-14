@@ -21,6 +21,16 @@ export interface LeadResponse {
   profile: Record<string, unknown> | null;
   scores: ScoreDimension[];
   documents: DocumentResponse[];
+  activity_log: ActivityLogResponse[];
+}
+
+export interface ActivityLogResponse {
+  id: string;
+  action: string;
+  description: string | null;
+  user_id: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
 }
 
 export interface DocumentResponse {
