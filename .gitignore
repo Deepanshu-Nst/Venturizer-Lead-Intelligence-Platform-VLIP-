@@ -4,6 +4,6 @@ build/
 .env
 .env.local
 *.log
-uploads/
+/backend/uploads/
 .turbo/
 .next/
