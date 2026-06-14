@@ -35,7 +35,7 @@ Rule-based engine computing 0–100 scores across 7 founder dimensions or 6 inve
 - Lead detail drawer with score breakdown
 - Full lead profile with documents, activity log, notes
 - Status workflow (new → reviewing → qualified → contacted → rejected → converted)
-- Analytics page with trend and bucket charts
+- Analytics page with 30-day daily trend and bucket charts
 
 ### Mobile Responsive
 Full responsive design — sidebar collapses on mobile, cards stack vertically, touch-friendly inputs.
@@ -158,7 +158,7 @@ cd backend && npm test
 
 ## Scoring Rules
 
-### Founder (max 100 across 7 dimensions)
+### Founder (Rule-Based, 80% Weight)
 | Dimension | Weight | Key Signals |
 |---|---|---|
 | Founder Experience | 15 | Prior startup, industry years |
@@ -169,7 +169,7 @@ cd backend && npm test
 | Validation | 10 | Revenue + user signals |
 | Funding Readiness | 10 | Commitment, funding ask |
 
-### Investor (max 100 across 6 dimensions)
+### Investor (Rule-Based, 80% Weight)
 | Dimension | Weight | Key Signals |
 |---|---|---|
 | Active Investor | 20 | Actively investing, looking for deals |
@@ -178,6 +178,11 @@ cd backend && npm test
 | Portfolio Quality | 15 | Portfolio company count |
 | Sector Match | 15 | Number of focus sectors |
 | Value Add | 15 | Value-add description richness |
+
+### AI Analyst (Qualitative, 20% Weight)
+An asynchronous background worker using Groq (Llama 3) evaluates the free-text responses of each lead to determine:
+- Problem clarity, differentiation, and execution confidence for Founders.
+- Value-add venture potential for Investors.
 
 ### Buckets
 | Bucket | Score | Action |
@@ -208,8 +213,9 @@ Full API documentation at [`docs/API.md`](docs/API.md).
 
 ## Design Decisions
 
-- **No chatbot UI**: Clean form-based flow with one question at a time — avoids generic chatbot aesthetic
-- **No LLM dependency**: All scoring is deterministic rule-based — no API calls, no latency, no cost
+- **No chatbot UI**: Clean form-based flow with one question at a time — avoids generic chatbot aesthetic while maintaining conversational feel.
+- **Hybrid AI Scoring**: A deterministic rule-based engine computes 80% of the score for immediate speed and auditability, while a background Groq Llama 3 AI Analyst computes the remaining 20% based on qualitative free-text analysis.
+- **Smooth Scrolling**: Lenis is used on the Landing Page to create a premium, fluid scrolling experience expected in top-tier venture capital websites.
 - **useReducer state machine**: Local state management without Redux/Zustand — sufficient for single-question-at-a-time flow
 - **Code-split analytics**: Recharts (420KB) lazy-loaded only on Analytics page
 - **Local-first persistence**: Session saved to localStorage with 300ms debounce — survives page refresh

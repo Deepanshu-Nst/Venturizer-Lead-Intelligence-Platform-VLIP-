@@ -362,7 +362,8 @@ sequenceDiagram
 | Decision | Rationale |
 |---|---|
 | **No chatbot UI** | Clean form-based flow avoids generic chatbot aesthetic and is more familiar for venture capital context |
-| **No LLM dependency** | Deterministic rule-based scoring is faster, cheaper, and auditable — no API latency or cost per evaluation |
+| **Hybrid AI Scoring** | Deterministic rules (80%) provide speed and auditability, while a background Groq Llama 3 AI Analyst (20%) evaluates qualitative text answers without blocking the user response |
+| **Smooth Scrolling** | Lenis is used on the Landing Page to create a premium, fluid scrolling experience expected in top-tier venture capital websites |
 | **useReducer over Redux/Zustand** | Single-question-at-a-time flow doesn't need global state management; simple reducer is sufficient |
 | **Code-split analytics** | Recharts is 420KB — lazy loading keeps main bundle under 300KB gzipped |
 | **Raw SQL over ORM** | Full control over query performance, especially for dashboard aggregation queries |

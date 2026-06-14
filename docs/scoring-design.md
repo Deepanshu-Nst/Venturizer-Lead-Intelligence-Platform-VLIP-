@@ -2,9 +2,12 @@
 
 ## 1. Philosophy
 
-Rule-based scoring engine with deterministic weights. No ML, no AI, no complex models. Each dimension has clear, auditable calculation rules. Perfect for a v1 MVP that needs to be explainable and debuggable.
+Venturizer uses a **Hybrid Scoring Model**. It combines a deterministic rule-based engine (80% weight) with an LLM-powered AI Venture Analyst (20% weight) to produce the final score.
 
-## 2. Founder Score (100 points)
+- **Rule-Based Engine (80%)**: Ensures deterministic, auditable, and instant calculation based on hard metrics (revenue, team size, experience).
+- **AI Analyst (20%)**: Uses Groq (Llama 3) in the background to evaluate qualitative signals (problem clarity, differentiation, execution confidence, etc.) without blocking the initial UI response.
+
+## 2. Founder Score (100 points - Rule Based)
 
 | Dimension | Weight | Calculation | Rationale |
 |---|---|---|---|
@@ -50,7 +53,7 @@ Rule-based scoring engine with deterministic weights. No ML, no AI, no complex m
 - Commitment: full-time = 5, part-time = 1
 - Ask: $1–$5M = 5, >$5M = 3, $0 = 0
 
-## 3. Investor Score (100 points)
+## 3. Investor Score (100 points - Rule Based)
 
 | Dimension | Weight | Calculation |
 |---|---|---|
@@ -97,7 +100,24 @@ Rule-based scoring engine with deterministic weights. No ML, no AI, no complex m
 - >0 characters: 5
 - Empty: 0
 
-## 4. Buckets
+## 4. AI Analyst Score (20% Weight)
+
+The Groq-powered AI Analyst evaluates the free-text responses and generates an intrinsic qualitative score.
+
+For **Founders**, it evaluates:
+- `problem_clarity` (0-20)
+- `market_understanding` (0-20)
+- `differentiation` (0-20)
+- `founder_conviction` (0-20)
+- `execution_confidence` (0-20)
+
+For **Investors**, it evaluates:
+- `venture_potential` (0-100 based on value-add, thesis, and follow-on strategy)
+
+**Final Score Calculation:**
+`Combined Score = Math.round((RuleScore * 0.8) + (AIScore * 0.2))`
+
+## 5. Buckets
 
 | Range | Bucket | Label | Action |
 |---|---|---|---|
@@ -106,7 +126,7 @@ Rule-based scoring engine with deterministic weights. No ML, no AI, no complex m
 | 40–59 | `maybe` | Maybe ⏳ | Monitor, re-engage in 30 days |
 | 0–39 | `low` | Low 📉 | Long-term nurture / automated digest |
 
-## 5. Storage
+## 6. Storage
 
 Each dimension's score is stored as a separate row in `qualification_scores`:
 
@@ -119,18 +139,15 @@ Each dimension's score is stored as a separate row in `qualification_scores`:
 }
 ```
 
-This enables:
-- Per-dimension score visualization in the dashboard
-- Audit trail for qualification decisions
-- Recalculation when weights change
+The AI evaluation object (strengths, risks, signals) is stored directly on the `leads.ai_evaluation` column as JSONB.
 
-## 6. Recalculation
+## 7. Recalculation
 
-The scoring engine is a pure function:
+The scoring engine is primarily a pure function:
 
 ```
 calculateScore(type: LeadType, answers: Record<string, unknown>)
   → { total: number, dimensions: ScoreDimension[] }
 ```
 
-This means scores can be recalculated at any time without side effects. When scoring weights change, a backfill script can recalculate all historical scores.
+However, because the AI component uses an external LLM, a full score recalculation requires either reusing the stored AI score or triggering a new async evaluation.
