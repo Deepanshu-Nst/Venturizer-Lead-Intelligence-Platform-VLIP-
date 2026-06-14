@@ -7,15 +7,13 @@ export async function getSummary(): Promise<DashboardSummary> {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  const [newThisWeek, newThisMonth, avgScore, bucketDist, statusDist, weeklyTrend] =
-    await Promise.all([
-      dashboardRepo.getCountSince(oneWeekAgo),
-      dashboardRepo.getCountSince(oneMonthAgo),
-      dashboardRepo.getAvgScore(),
-      dashboardRepo.getBucketDistribution(),
-      dashboardRepo.getStatusDistribution(),
-      dashboardRepo.getWeeklyTrend(),
-    ]);
+  const newThisWeek = await dashboardRepo.getCountSince(oneWeekAgo);
+  const newThisMonth = await dashboardRepo.getCountSince(oneMonthAgo);
+  const avgScore = await dashboardRepo.getAvgScore();
+  const bucketDist = await dashboardRepo.getBucketDistribution();
+  const statusDist = await dashboardRepo.getStatusDistribution();
+  const weeklyTrend = await dashboardRepo.getWeeklyTrend();
+  const sectorDist = await dashboardRepo.getSectorDistribution();
 
   return {
     total_leads: stats.total_leads,
@@ -32,5 +30,6 @@ export async function getSummary(): Promise<DashboardSummary> {
     bucket_distribution: bucketDist,
     status_distribution: statusDist,
     weekly_trend: weeklyTrend,
+    sector_distribution: sectorDist,
   };
 }

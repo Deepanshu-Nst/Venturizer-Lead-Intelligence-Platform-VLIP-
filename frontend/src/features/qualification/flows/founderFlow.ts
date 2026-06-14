@@ -70,8 +70,8 @@ const founderQuestions: Question[] = [
   },
   {
     id: "industry",
-    question: "Which industry are you in?",
-    type: "select",
+    question: "Which industries are you in?",
+    type: "multiselect",
     stage: "startup",
     required: true,
     options: [

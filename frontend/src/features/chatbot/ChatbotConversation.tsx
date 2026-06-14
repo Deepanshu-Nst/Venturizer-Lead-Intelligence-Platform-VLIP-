@@ -366,7 +366,7 @@ export function ChatbotConversation() {
       await addBotMessage('Submitting your qualification now… ⏳', 400);
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
 
       try {
         // Build final answers: merge current state with the overrideValue
@@ -453,7 +453,7 @@ export function ChatbotConversation() {
     let mounted = true;
     const poll = async () => {
       try {
-        const res = await fetch(`/api/v1/dashboard/leads/${pendingLeadId}`);
+        const res = await fetch(`/api/v1/lead/${pendingLeadId}`);
         if (!res.ok) return;
         const json = await res.json();
         const lead = json.data;

@@ -79,7 +79,7 @@ export function ConversationContainer() {
       submitStart();
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
 
       try {
         const body: Record<string, unknown> = {

@@ -46,4 +46,5 @@ export interface LeadDetailDTO {
   scores: ScoreDimensionDTO[];
   documents: DocumentDTO[];
   activity_log: ActivityLogDTO[];
+  ai_evaluation?: Record<string, any> | null;
 }

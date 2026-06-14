@@ -82,3 +82,21 @@ export async function getWeeklyTrend(weeks = 8): Promise<WeeklyTrend[]> {
     count: parseInt(r.count, 10),
   }));
 }
+
+export async function getSectorDistribution(): Promise<{ sector: string; count: number }[]> {
+  const result = await query<{ sector: string; count: string }>(`
+    WITH all_sectors AS (
+      SELECT UNNEST(industry) AS sector FROM founder_profiles WHERE industry IS NOT NULL
+      UNION ALL
+      SELECT UNNEST(sector_focus) AS sector FROM investor_profiles WHERE sector_focus IS NOT NULL
+    )
+    SELECT sector, COUNT(*)::text AS count
+    FROM all_sectors
+    GROUP BY sector
+    ORDER BY count DESC
+  `);
+  return result.rows.map((r) => ({
+    sector: r.sector,
+    count: parseInt(r.count, 10),
+  }));
+}

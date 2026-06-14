@@ -16,6 +16,7 @@ const envSchema = z.object({
     .enum(["debug", "info", "warn", "error"])
     .default("info"),
   API_KEY: z.string().min(8, "API_KEY must be at least 8 characters"),
+  GROQ_API_KEY: z.string().default("gsk_examplekey"), // Using default for ease of local dev without forcing a key if not set, or we can make it optional
 
   // Upload — storage driver
   STORAGE_DRIVER: z.enum(["disk", "s3"]).default("disk"),

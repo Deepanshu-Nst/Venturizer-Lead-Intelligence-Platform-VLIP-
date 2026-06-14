@@ -144,5 +144,6 @@ export async function getLeadDetail(id: string): Promise<LeadDetailDTO | null> {
     scores: scoreDims,
     documents: docDTOs,
     activity_log: logDTOs,
+    ai_evaluation: typeof lead.ai_evaluation === 'string' ? JSON.parse(lead.ai_evaluation) : (lead.ai_evaluation ?? null),
   };
 }

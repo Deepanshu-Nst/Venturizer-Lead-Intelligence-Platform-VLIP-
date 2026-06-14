@@ -28,65 +28,25 @@ function logScore(value: number, maxVal: number, maxScore: number): number {
   return Math.min(Math.max(ratio, 0), 1) * maxScore;
 }
 
-/** Estimates whether a problem statement contains domain-specific language. */
-function hasDomainTerms(text: string): boolean {
-  const terms = [
-    "enterprise", "b2b", "b2c", "saas", "api", "platform", "pipeline",
-    "workflow", "infrastructure", "compliance", "latency", "throughput",
-    "automation", "integration", "scal", "migrat", "deploy", "container",
-    "microservice", "ml", "ai", "model", "algorithm", "neural",
-    "regression", "churn", "lifetime value", "ltv", "cac", "cohort",
-    "unit economics", "margins", "revenue", "arr", "mrr", "gmv",
-    "manufacturing", "supply chain", "logistics", "inventory",
-    "clinical", "patient", "diagnostic", "regulatory", "fda",
-    "fintech", "payments", "underwriting", "risk", "compliance",
-    "protocol", "layer", "consensus", "validator", "sequencer",
-  ];
-  const lower = text.toLowerCase();
-  return terms.some((t) => lower.includes(t));
-}
 
-/** Counts how many non-empty answer fields the user filled. */
-function nonEmptyCount(answers: Record<string, unknown>): number {
-  let count = 0;
-  for (const v of Object.values(answers)) {
-    if (v !== undefined && v !== null && v !== "") count++;
-    else if (Array.isArray(v) && v.length > 0) count++;
-  }
-  return count;
-}
 
-/** Average character length of all text-type answers. */
-function avgTextLength(answers: Record<string, unknown>): number {
-  let total = 0;
-  let count = 0;
-  for (const v of Object.values(answers)) {
-    if (typeof v === "string" && v.length > 0) {
-      total += v.length;
-      count++;
-    }
-  }
-  return count > 0 ? total / count : 0;
-}
-
-/** Detects low-quality / gibberish text.
- *  Returns true if the text appears to be random characters, repeated words,
- *  or lacks any real English structure. */
 function isLowQualityText(text: string): boolean {
   if (text.length < 5) return true;
   const lower = text.toLowerCase().trim();
   // Check for excessive uppercase ratio (common in spam)
   const upperRatio = (text.match(/[A-Z]/g) || []).length / text.length;
   if (upperRatio > 0.7 && text.length > 10) return true;
-  // Check for very few actual words (< 3 space-separated tokens with 3+ chars)
-  const words = lower.split(/\s+/).filter(w => w.length >= 3);
-  if (words.length < 3 && text.length > 20) return true;
-  // Check for high ratio of non-alphabetic chars
+  
+  // High ratio of non-alphabetic chars (spam/scraped junk)
   const alphaChars = (lower.match(/[a-z]/g) || []).length;
   if (alphaChars / lower.length < 0.5 && text.length > 10) return true;
-  // Check if it's just repeating patterns
-  const uniqueWords = new Set(words);
-  if (words.length > 4 && uniqueWords.size < words.length * 0.3) return true;
+  
+  const words = lower.split(/\s+/).filter(w => w.length >= 3);
+  if (words.length > 4) {
+    const uniqueWords = new Set(words);
+    if (uniqueWords.size < words.length * 0.3) return true;
+  }
+  
   return false;
 }
 
@@ -149,39 +109,40 @@ const founderMarketFit: ScoreRule = {
       return {
         score: 0,
         maxScore: 10,
-        rationale: `Problem statement quality too low for founder-market fit assessment`,
+        rationale: `Problem statement quality too low for assessment`,
       };
     }
 
-    // Problem depth (0–3)
-    const problemDepth =
-      problem.length >= 300 ? 3 : problem.length >= 150 ? 2 : problem.length >= 50 ? 1 : 0;
+    // Problem depth: rely on existence rather than massive length
+    const problemDepth = problem.length >= 20 ? 3 : problem.length > 0 ? 1 : 0;
 
-    // Target customer specificity (0–2)
-    const targetScore = target.length >= 80 ? 2 : target.length >= 20 ? 1 : 0;
+    // Target customer specificity
+    const targetScore = target.length >= 10 ? 2 : target.length > 0 ? 1 : 0;
 
-    // Domain language detection (0–3): require substance, not just a keyword
-    const domainScore = hasDomainTerms(problem) && problem.length >= 80 ? 3 :
-      hasDomainTerms(problem) ? 1 : problem.length > 100 ? 1 : 0;
+    // Experience alignment
+    let experienceScore = 0;
+    if (years >= 5) experienceScore = 5;
+    else if (years >= 3) experienceScore = 3;
+    else if (years >= 1) experienceScore = 1;
 
-    // Experience-to-problem alignment (0–2): founder with domain experience
-    // should demonstrate deeper problem understanding
-    const alignment =
-      years >= 3 && problemDepth >= 2 ? 2 :
-      years >= 3 && problemDepth >= 1 ? 1 :
-      years >= 1 && problemDepth >= 2 ? 2 :
-      years >= 1 && problemDepth >= 1 ? 1 : 0;
+    // Traction confidence boost to FMF
+    const users = num(answers.active_users);
+    const revenue = num(answers.monthly_revenue);
+    let tractionBoost = 0;
+    if (revenue > 1000 || users > 100) {
+      tractionBoost = 2;
+    }
 
-    const score = Math.min(problemDepth + targetScore + domainScore + alignment, 10);
+    const score = Math.min(problemDepth + targetScore + experienceScore + tractionBoost, 10);
 
     return {
       score,
       maxScore: 10,
       rationale:
-        `Problem depth: ${problem.length}c (${problemDepth}/3), ` +
-        `Target specificity: ${target.length}c (${targetScore}/2), ` +
-        `Domain language: ${hasDomainTerms(problem) ? "detected" : "not detected"} (${domainScore}/3), ` +
-        `Experience alignment: ${years}y experience, ${problemDepth}/3 depth (${alignment}/2)`,
+        `Problem depth: (${problemDepth}/3), ` +
+        `Target specificity: (${targetScore}/2), ` +
+        `Experience: ${years}y (${experienceScore}/5), ` +
+        `Traction boost: +${tractionBoost}`,
     };
   },
 };
@@ -192,50 +153,24 @@ const founderMarketFit: ScoreRule = {
 
 const problemMarket: ScoreRule = {
   dimension: "problem_market",
-  weight: 15,
+  weight: 5,
   evaluator(answers: Record<string, unknown>): ScoreResult {
     const problem = str(answers.problem_statement);
     const target = str(answers.target_customer);
-    const industry = str(answers.industry);
+    const industryArray = Array.isArray(answers.industry) ? answers.industry : [str(answers.industry)];
 
-    // If problem statement is gibberish, cap the whole dimension at 2
-    const isGibberish = problem.length > 0 && isLowQualityText(problem);
-
-    // Problem clarity (0–6) — requires real substance
-    const clarity =
-      problem.length >= 500 ? 6 :
-      problem.length >= 300 ? 4 :
-      problem.length >= 150 ? 2 :
-      problem.length >= 50 ? 1 : 0;
-
-    // Market understanding via target customer (0–5)
-    const marketUnderstanding =
-      target.length >= 200 ? 5 :
-      target.length >= 120 ? 4 :
-      target.length >= 70 ? 3 :
-      target.length >= 30 ? 2 :
-      target.length > 0 ? 1 : 0;
-
-    // Industry signal (0–4): specific industries indicate thoughtfulness
-    const knownIndustries = [
-      "saas", "fintech", "health", "climate", "ai-ml", "ecommerce",
-      "edtech", "biotech", "cleantech", "proptech", "hrtech",
-      "legaltech", "cybersecurity", "gaming", "marketplace",
-      "logistics", "manufacturing", "energy",
-    ];
-    const industryScore = knownIndustries.includes(industry.toLowerCase()) ? 4 :
-      (industry.length > 0 && industry.toLowerCase() !== "other") ? 2 : 0;
-
-    let score = Math.min(clarity + marketUnderstanding + industryScore, 15);
-    if (isGibberish) score = Math.min(score, 2);
+    let score = 0;
+    if (problem.length >= 20) score += 2;
+    if (target.length >= 10) score += 2;
+    if (industryArray.length > 0 && industryArray[0] !== "" && industryArray[0].toLowerCase() !== "other") score += 1;
 
     return {
       score,
-      maxScore: 15,
+      maxScore: 5,
       rationale:
-        `Problem clarity: ${problem.length}c (${clarity}/6)${isGibberish ? ' [LOW QUALITY]' : ''}, ` +
-        `Market understanding: ${target.length}c (${marketUnderstanding}/5), ` +
-        `Industry: ${industry || "none"} (${industryScore}/4)`,
+        `Problem statement present: ${problem.length >= 20 ? "yes" : "no"} (+${problem.length >= 20 ? 2 : 0}), ` +
+        `Target customer present: ${target.length >= 10 ? "yes" : "no"} (+${target.length >= 10 ? 2 : 0}), ` +
+        `Industry present: ${industryArray.length > 0 && industryArray[0] !== "" && industryArray[0].toLowerCase() !== "other" ? "yes" : "no"} (+${industryArray.length > 0 && industryArray[0] !== "" && industryArray[0].toLowerCase() !== "other" ? 1 : 0})`,
     };
   },
 };
@@ -273,18 +208,18 @@ const mvpReadiness: ScoreRule = {
 
 const traction: ScoreRule = {
   dimension: "traction",
-  weight: 30,
+  weight: 40,
   evaluator(answers: Record<string, unknown>): ScoreResult {
     const users = num(answers.active_users);
     const revenue = num(answers.monthly_revenue);
     const growth = num(answers.growth_rate);
     const mvpStatus = str(answers.mvp_status);
 
-    // Users: logarithmic, max 10 at 5M users (diminishing returns)
-    const usersScore = logScore(users, 5_000_000, 10);
+    // Users: logarithmic, max 15 at 5M users (diminishing returns)
+    const usersScore = logScore(users, 5_000_000, 15);
 
-    // Revenue: logarithmic, max 10 at $3M MRR (harder to max)
-    const revenueScore = logScore(revenue, 3_000_000, 10);
+    // Revenue: logarithmic, max 15 at $3M MRR (harder to max)
+    const revenueScore = logScore(revenue, 3_000_000, 15);
 
     // Growth rate: logarithmic, max 5 at 200% MoM
     const growthScore = logScore(growth, 200, 5);
@@ -316,17 +251,26 @@ const traction: ScoreRule = {
     }
 
     const raw = usersScore + revenueScore + growthScore + consistencyScore + efficiencyScore;
-    const score = Math.min(raw, 30);
+    
+    // Traction Confidence Boost
+    let confidenceBoost = 0;
+    if (users > 1000) confidenceBoost += 2;
+    if (revenue > 10000) confidenceBoost += 3;
+    if (growth > 10) confidenceBoost += 2;
+    confidenceBoost = Math.min(confidenceBoost, 5); // cap at +5
+
+    const score = Math.min(raw + confidenceBoost, 40);
 
     return {
       score,
-      maxScore: 30,
+      maxScore: 40,
       rationale:
         `Active users: ${users} (${usersScore.toFixed(1)}/10, log), ` +
         `Monthly revenue: $${revenue} (${revenueScore.toFixed(1)}/10, log), ` +
         `Growth rate: ${growth}% (${growthScore.toFixed(1)}/5, log), ` +
         `Stage consistency: ${consistencyScore}/3, ` +
-        `Capital efficiency: ${efficiencyScore}/2`,
+        `Capital efficiency: ${efficiencyScore}/2, ` +
+        `Confidence Boost: +${confidenceBoost}`,
     };
   },
 };
@@ -368,49 +312,43 @@ const fundingReadiness: ScoreRule = {
   dimension: "funding_readiness",
   weight: 10,
   evaluator(answers: Record<string, unknown>): ScoreResult {
-    const commitment = str(answers.commitment);
     const ask = num(answers.funding_ask);
     const revenue = num(answers.monthly_revenue);
     const users = num(answers.active_users);
+    const stage = str(answers.mvp_status);
+    const commitment = str(answers.commitment);
 
-    // Commitment (0–4)
-    const commitmentScore = commitment === "full-time" ? 4 :
-      commitment === "part-time" ? 1 : 0;
+    let score = 5; // Start in the middle
 
-    // Ask reasonableness (0–4):
-    // Evaluate ask relative to traction
-    let askScore = 0;
-    if (ask > 0 && revenue > 0) {
-      // Capital efficiency: ask / monthly revenue
-      const monthsOfRevenue = ask / revenue;
-      if (monthsOfRevenue >= 12 && monthsOfRevenue <= 60) {
-        askScore = 4; // Reasonable ask: 1x-5x annual revenue
-      } else if (monthsOfRevenue > 60 && monthsOfRevenue <= 120) {
-        askScore = 3; // High but plausible
-      } else if (monthsOfRevenue > 0 && monthsOfRevenue < 12) {
-        askScore = 2; // Low ask relative to revenue (small ask)
-      } else {
-        askScore = 1; // Very high ask
+    // Evaluate ask relative to stage and reality
+    if (ask > 0) {
+      if (stage === "idea" && ask > 1000000) {
+        score -= 5; // Delusional
+      } else if (stage === "prototype" && ask > 2000000) {
+        score -= 3; // Questionable
+      } else if (revenue > 0) {
+        const arr = revenue * 12;
+        if (ask <= arr * 5) {
+          score += 3; // Very reasonable
+        } else if (ask <= arr * 10) {
+          score += 1; // High but plausible
+        } else {
+          score -= 2; // Too high relative to revenue
+        }
+      } else if (users > 1000 && ask <= 2000000) {
+        score += 2; // Pre-revenue but reasonable ask with traction
       }
-    } else if (ask > 0 && users > 100) {
-      // Pre-revenue but has users
-      askScore = 2;
-    } else if (ask > 0) {
-      askScore = 1; // Pre-revenue, pre-users
     }
 
-    // Raise readiness signal (0–2): ask existence + traction combo
-    const readinessScore = ask > 0 ? (revenue > 0 || users > 100 ? 2 : 1) : 0;
+    if (commitment === "full-time") score += 2;
+    else if (commitment === "part-time") score -= 2;
 
-    const score = Math.min(commitmentScore + askScore + readinessScore, 10);
+    score = Math.min(Math.max(score, 0), 10);
 
     return {
       score,
       maxScore: 10,
-      rationale:
-        `Commitment: ${commitment} (${commitmentScore}/4), ` +
-        `Ask reasonableness: $${ask} vs $${revenue}/mo revenue (${askScore}/4), ` +
-        `Raise readiness: ask=${ask > 0}, traction=${revenue > 0 || users > 100} (${readinessScore}/2)`,
+      rationale: `Founder Reality Check: Stage=${stage}, Ask=$${ask}, Revenue=$${revenue}/mo, Commitment=${commitment} -> Score: ${score}/10`,
     };
   },
 };
@@ -423,50 +361,35 @@ const evidenceQuality: ScoreRule = {
   dimension: "evidence_quality",
   weight: 5,
   evaluator(answers: Record<string, unknown>): ScoreResult {
-    const nonEmpty = nonEmptyCount(answers);
-    const avgLen = avgTextLength(answers);
     const qualityPenalty = getQualityPenalty(answers);
 
-    // If there's a quality penalty, this dimension is 0 and penalty carries forward
+    // Anti-gaming / anti-gibberish governor
     if (qualityPenalty > 0) {
       return {
-        score: -qualityPenalty, // Negative score to penalize overall total
+        score: -qualityPenalty,
         maxScore: 5,
         rationale: `Quality penalty: -${qualityPenalty} (gibberish/gaming detected in text answers)`,
       };
     }
 
-    // Completeness (0–2)
-    const textFields = [
-      "problem_statement", "target_customer", "startup_name",
-      "industry", "founder_background",
-    ];
-    let completeness = 0;
-    for (const field of textFields) {
-      const val = str(answers[field]);
-      if (val.length >= 20 && !isLowQualityText(val)) completeness++;
-    }
-    const completenessScore = Math.min(completeness, 2);
+    let score = 0;
+    
+    // Reward providing concrete numbers (no length penalty)
+    if (num(answers.monthly_revenue) > 0) score += 2;
+    if (num(answers.active_users) > 0) score += 1;
+    if (num(answers.growth_rate) > 0) score += 1;
+    if (num(answers.funding_ask) > 0) score += 1;
 
-    // Depth (0–2) — answers must be substantive
-    const depthScore =
-      avgLen >= 200 ? 2 :
-      avgLen >= 100 ? 1 : 0;
-
-    // Answer count signal (0–1)
-    const totalQuestions = 18;
-    const answeredRatio = nonEmpty / totalQuestions;
-    const coverageScore = answeredRatio >= 0.8 ? 1 : answeredRatio >= 0.5 ? 0.5 : 0;
-
-    const score = Math.min(Math.round(completenessScore + depthScore + coverageScore), 5);
+    score = Math.min(score, 5);
 
     return {
       score,
       maxScore: 5,
       rationale:
-        `Completeness: ${completenessScore}/2 fields detailed, ` +
-        `Avg answer depth: ${avgLen.toFixed(0)}c (${depthScore}/2), ` +
-        `Coverage: ${nonEmpty}/18 answered (${(coverageScore * 2).toFixed(1)}/1)`,
+        `Evidence provided: revenue (${num(answers.monthly_revenue) > 0 ? '+2' : '0'}), ` +
+        `users (${num(answers.active_users) > 0 ? '+1' : '0'}), ` +
+        `growth (${num(answers.growth_rate) > 0 ? '+1' : '0'}), ` +
+        `funding ask (${num(answers.funding_ask) > 0 ? '+1' : '0'})`,
     };
   },
 };

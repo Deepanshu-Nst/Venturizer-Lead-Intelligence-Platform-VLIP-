@@ -22,6 +22,7 @@ export interface LeadResponse {
   scores: ScoreDimension[];
   documents: DocumentResponse[];
   activity_log: ActivityLogResponse[];
+  ai_evaluation: Record<string, any> | null;
 }
 
 export interface ActivityLogResponse {

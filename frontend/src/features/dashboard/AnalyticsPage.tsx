@@ -1,5 +1,6 @@
 import { useDashboardSummary } from "@/features/dashboard/hooks/useDashboardSummary";
 import { TrendChart } from "@/features/dashboard/components/Analytics/TrendChart";
+import { SectorChart } from "@/features/dashboard/components/Analytics/SectorChart";
 import {
   Users, Target, Activity, Percent, BrainCircuit,
   ArrowRight, Zap, TrendingUp, Flame, CheckCircle2,
@@ -270,6 +271,23 @@ export function AnalyticsPage() {
               </div>
             </div>
           </div>
+
+          {/* New Row: Sector Distribution */}
+          <div className="grid gap-4 lg:grid-cols-1">
+            <div className="card-premium overflow-hidden">
+              <div className="px-6 py-5 border-b border-border/50">
+                <h3 className="text-[14px] font-bold text-[#0d1428] flex items-center gap-2">
+                  <BrainCircuit className="h-4 w-4 text-muted-foreground/50" />
+                  Venturizer Sector Heatmap
+                </h3>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Combined founder industry and investor focus areas</p>
+              </div>
+              <div className="p-6">
+                <SectorChart data={summary?.sector_distribution ?? []} loading={loading} />
+              </div>
+            </div>
+          </div>
+
         </div>
       )}
     </div>

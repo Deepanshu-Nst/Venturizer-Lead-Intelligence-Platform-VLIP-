@@ -17,7 +17,7 @@ export const config = {
     pool: {
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      connectionTimeoutMillis: 30000,
       maxUses: 100,
     },
   },
@@ -47,6 +47,10 @@ export const config = {
 
   auth: {
     apiKey: env.API_KEY,
+  },
+
+  groq: {
+    apiKey: env.GROQ_API_KEY,
   },
 } as const;
 

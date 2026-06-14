@@ -41,6 +41,7 @@ export interface DashboardSummary {
   bucket_distribution: BucketDistribution[];
   status_distribution: StatusDistribution[];
   weekly_trend: WeeklyTrend[];
+  sector_distribution: { sector: string; count: number }[];
 }
 
 export interface LeadFilters {

@@ -63,6 +63,7 @@ export interface Lead {
   score_bucket: ScoreBucket | null;
   assigned_to: string | null;
   source: string;
+  ai_evaluation?: Record<string, any> | null;
   created_at: string;
   updated_at: string;
 }

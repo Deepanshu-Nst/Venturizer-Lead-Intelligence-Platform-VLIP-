@@ -9,6 +9,7 @@ import * as scoreRepo from "../repositories/score.repository.js";
 import * as documentRepo from "../repositories/document.repository.js";
 import { calculateScore, getBucket } from "../../scoring/scoring.service.js";
 import { consumeTempFile } from "../../uploads/temp-store.js";
+import { evaluateLeadWithAI, calculateAiScore } from "../../scoring/engine/ai-analyst.js";
 import { withTransaction, query } from "../../../shared/db/pool.js";
 
 const sessions = new Map<string, {
@@ -165,7 +166,7 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
           req.answers.industry_experience ? Math.round(Number(req.answers.industry_experience)) : null,
           (req.answers.commitment as string | undefined) ?? null,
           (req.answers.startup_name as string | undefined) ?? null,
-          (req.answers.industry as string | undefined) ?? null,
+          Array.isArray(req.answers.industry) ? req.answers.industry : null,
           (req.answers.problem_statement as string | undefined) ?? null,
           (req.answers.target_customer as string | undefined) ?? null,
           (req.answers.mvp_status as string | undefined) ?? null,
@@ -251,6 +252,11 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
     sessions.delete(req.sessionId);
   }
 
+  // Trigger AI evaluation in the background (does not block the user response)
+  void backgroundAiEvaluation(lead.id, req.type, req.answers, total).catch(err => {
+    console.error(`[lead.service] Background AI evaluation failed for lead ${lead.id}:`, err);
+  });
+
   return {
     lead_id: lead.id,
     score: total,
@@ -309,6 +315,7 @@ export async function getLeadById(id: string): Promise<LeadResponse | null> {
     score: lead.score,
     score_bucket: lead.score_bucket,
     source: lead.source,
+    ai_evaluation: typeof lead.ai_evaluation === 'string' ? JSON.parse(lead.ai_evaluation) : (lead.ai_evaluation ?? null),
     created_at: lead.created_at,
     updated_at: lead.updated_at,
     profile,
@@ -329,4 +336,57 @@ export async function getLeadById(id: string): Promise<LeadResponse | null> {
       created_at: a.created_at,
     })),
   };
+}
+
+async function backgroundAiEvaluation(
+  leadId: string,
+  type: "founder" | "investor",
+  answers: Record<string, unknown>,
+  ruleScore: number
+): Promise<void> {
+  const aiEval = await evaluateLeadWithAI(type, answers);
+  
+  if (!aiEval) {
+    // If Groq fails or key is missing, write a fallback so the UI isn't stuck on "REVIEW PENDING..."
+    const fallbackEval = {
+      summary: "AI evaluation skipped or failed (check GROQ_API_KEY). Proceeding with rule-based score.",
+      strengths: [],
+      risks: [],
+      key_signals: [],
+      recommendation: "Review manually",
+      problem_clarity: 0,
+      market_understanding: 0,
+      differentiation: 0,
+      founder_conviction: 0,
+      execution_confidence: 0,
+      venture_potential: 0,
+      skipped: true
+    };
+    await query(
+      `UPDATE leads SET ai_evaluation = $1, updated_at = NOW() WHERE id = $2`,
+      [JSON.stringify(fallbackEval), leadId]
+    );
+    return;
+  }
+
+  const aiScore = calculateAiScore(aiEval, type, answers);
+  
+  // Combine 80% rule score and 20% AI score
+  const combinedScore = Math.round(ruleScore * 0.8 + aiScore * 0.2);
+  const combinedBucket = getBucket(combinedScore);
+
+  await query(
+    `UPDATE leads SET score = $1, score_bucket = $2, ai_evaluation = $3, updated_at = NOW() WHERE id = $4`,
+    [combinedScore, combinedBucket, JSON.stringify(aiEval), leadId]
+  );
+
+  await query(
+    `INSERT INTO activity_logs (lead_id, action, description, metadata) VALUES ($1, $2, $3, $4)`,
+    [
+      leadId,
+      "ai_analyst_review",
+      "AI Venture Analyst completed review",
+      JSON.stringify({ rule_score: ruleScore, ai_score: aiScore, final_score: combinedScore }),
+    ]
+  );
 }
