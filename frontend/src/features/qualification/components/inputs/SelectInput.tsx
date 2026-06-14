@@ -31,7 +31,7 @@ export function SelectInput({ value, onChange, options, disabled, onAutoSubmit, 
               // Auto-advance
               if (onAutoSubmit) {
                 // slight delay for UX
-                setTimeout(() => onAutoSubmit(value), 150);
+                setTimeout(() => onAutoSubmit(option.value), 150);
               }
             }}
             className={cn(

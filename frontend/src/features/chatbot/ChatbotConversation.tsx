@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { useQualificationMachine } from "@/features/qualification/hooks/useQualificationMachine";
 import { validateField } from "@/features/qualification/validation";
 import { loadSession } from "@/features/qualification/engine/conversationState";
 import { ChatbotMessage } from "./ChatbotMessage";
 import { ChatbotInputArea } from "./ChatbotInputArea";
 import { useChatbot } from "./ChatbotContext";
-import { CheckCircle2, Home, RotateCcw, Briefcase, Landmark } from "lucide-react";
+import { CheckCircle2, Home, RotateCcw, Briefcase, Landmark, Loader2 } from "lucide-react";
 import type { FlowType } from "@/features/qualification/types";
 import type { ValidationError } from "@/features/qualification/types";
 
@@ -110,7 +109,6 @@ function CompletionOutcomeCard({
   flowType: FlowType | null;
   onReset: () => void;
 }) {
-  const navigate = useNavigate();
   const band = getBandConfig(score, flowType);
 
   return (
@@ -192,6 +190,7 @@ export function ChatbotConversation() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [completionScore, setCompletionScore] = useState<number | null>(null);
+  const [pendingLeadId, setPendingLeadId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isSubmittingRef = useRef(false);
 
@@ -397,9 +396,7 @@ export function ChatbotConversation() {
         setIsSubmitting(false);
         submitDone(json.data.lead_id);
 
-        const score = json.data.score as number;
-        setCompletionScore(score);
-        await addBotMessage('Your qualification has been submitted. Here is your result:', 600);
+        setPendingLeadId(json.data.lead_id);
       } catch (err) {
         clearTimeout(timeoutId);
         isSubmittingRef.current = false;
@@ -445,9 +442,37 @@ export function ChatbotConversation() {
     setFieldError(null);
     setIsSubmitting(false);
     setCompletionScore(null);
+    setPendingLeadId(null);
     isSubmittingRef.current = false;
     addBotMessage(BOT_INTRO, 400);
   }, [reset, addBotMessage]);
+
+  useEffect(() => {
+    if (!pendingLeadId) return;
+
+    let mounted = true;
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/v1/dashboard/leads/${pendingLeadId}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const lead = json.data;
+        if (lead && lead.ai_evaluation && mounted) {
+          setPendingLeadId(null);
+          setCompletionScore(lead.score);
+          addBotMessage('Your qualification has been processed. Here is your combined AI + Rule result:', 600);
+        }
+      } catch (err) {
+        // ignore polling errors
+      }
+    };
+
+    const interval = setInterval(poll, 2000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [pendingLeadId, addBotMessage]);
 
   const currentQuestion = state.questions[state.currentIndex] ?? null;
   const currentValue = currentQuestion ? state.answers[currentQuestion.id] : undefined;
@@ -573,7 +598,14 @@ export function ChatbotConversation() {
       )}
 
       {/* Input area */}
-      {showInputArea && !isTyping && (
+      {completionScore !== null ? (
+        <CompletionOutcomeCard score={completionScore} flowType={state.flowType} onReset={handleReset} />
+      ) : pendingLeadId !== null ? (
+        <div className="flex-none border-t border-white/[0.07] px-8 py-8 flex flex-col items-center justify-center text-center space-y-4 bg-[#0d1428]">
+          <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+          <p className="text-[13px] text-white/70 font-medium">AI Review Pending...</p>
+        </div>
+      ) : showInputArea && !isTyping && (
         <ChatbotInputArea
           question={currentQuestion!}
           value={currentValue}

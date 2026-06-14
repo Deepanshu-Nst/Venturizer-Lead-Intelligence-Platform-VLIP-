@@ -17,7 +17,7 @@ export function BooleanInput({ value, onChange, disabled, onAutoSubmit }: Boolea
         disabled={disabled}
         onClick={() => {
           onChange(true);
-          if (onAutoSubmit) setTimeout(onAutoSubmit, 150);
+          if (onAutoSubmit) setTimeout(() => onAutoSubmit(true), 150);
         }}
         className={cn(
           "flex-1 rounded-xl border-2 px-6 py-4 text-base font-medium transition-all duration-200",
@@ -36,7 +36,7 @@ export function BooleanInput({ value, onChange, disabled, onAutoSubmit }: Boolea
         disabled={disabled}
         onClick={() => {
           onChange(false);
-          if (onAutoSubmit) setTimeout(onAutoSubmit, 150);
+          if (onAutoSubmit) setTimeout(() => onAutoSubmit(false), 150);
         }}
         className={cn(
           "flex-1 rounded-xl border-2 px-6 py-4 text-base font-medium transition-all duration-200",

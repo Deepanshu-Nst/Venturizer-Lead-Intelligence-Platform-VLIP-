@@ -39,5 +39,16 @@ export function useLeadDetail(id: string | undefined): UseLeadDetailResult {
     fetch();
   }, [fetch]);
 
+  // Poll every 2 seconds if ai_evaluation is null
+  useEffect(() => {
+    if (!lead || lead.ai_evaluation) return;
+    
+    const interval = setInterval(() => {
+      fetch();
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, [lead, fetch]);
+
   return { lead, loading, error, refetch: fetch };
 }

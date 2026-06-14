@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, ExternalLink, Mail, Link as LinkIcon, Activity, CheckCircle, AlertTriangle, FileText, Lightbulb } from "lucide-react";
 import type { LeadDetail } from "@/features/dashboard/types/dashboard";
 import { useLeadDetail } from "@/features/dashboard/hooks/useLeadDetail";
 import { formatDate } from "@/shared/lib/utils";
-import { generateQualificationSummary } from "@/features/dashboard/lib/qualificationReasoning";
 import { PdfViewer } from "@/features/dashboard/components/PdfViewer";
 import { api } from "@/features/dashboard/services/api";
 
@@ -163,7 +162,6 @@ function DrawerContent({
   const bucketCfg = lead.score_bucket ? bucketConfig[lead.score_bucket] : null;
   const quickStatuses = ['new', 'reviewing', 'qualified', 'contacted', 'rejected', 'converted'];
   
-  const qualification = useMemo(() => generateQualificationSummary(lead), [lead]);
   const [activeTab, setActiveTab] = useState<'answers' | 'documents' | 'activity'>('answers');
 
   const doc = lead.documents?.[0];
@@ -206,40 +204,77 @@ function DrawerContent({
         )}
       </div>
 
-      {/* AI Summary */}
-      {qualification && (
-        <div className="px-6 py-5 border-b border-border space-y-4">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">AI Analysis</p>
-          
-          <div className="space-y-3">
-            <div className="flex items-start gap-2.5">
-              <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-none" />
-              <div>
-                <span className="text-[12px] font-bold text-foreground block mb-1">Key Strengths</span>
-                <ul className="space-y-1">
-                  {qualification.strengths.slice(0, 3).map((s, i) => (
-                    <li key={i} className="text-[13px] text-muted-foreground leading-relaxed">• {s}</li>
-                  ))}
-                </ul>
+      {/* AI Venture Analyst */}
+      <div className="px-6 py-5 border-b border-border space-y-4 bg-slate-50">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-800 flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+            AI Venture Analyst
+          </p>
+          {!lead.ai_evaluation && (
+            <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full animate-pulse">
+              REVIEW PENDING...
+            </span>
+          )}
+        </div>
+        
+        {lead.ai_evaluation ? (
+          lead.ai_evaluation.skipped ? (
+            <div className="space-y-3 bg-amber-50 border border-amber-200/50 rounded-lg p-4">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="h-4 w-4 text-amber-500 flex-none mt-0.5" />
+                <p className="text-[13px] text-amber-800 leading-relaxed font-medium">
+                  {lead.ai_evaluation.summary}
+                </p>
               </div>
             </div>
-            
-            {qualification.concerns.length > 0 && (
-              <div className="flex items-start gap-2.5">
-                <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-none" />
-                <div>
-                  <span className="text-[12px] font-bold text-foreground block mb-1">Risk Factors</span>
-                  <ul className="space-y-1">
-                    {qualification.concerns.slice(0, 2).map((c, i) => (
-                      <li key={i} className="text-[13px] text-muted-foreground leading-relaxed">• {c}</li>
-                    ))}
-                  </ul>
-                </div>
+          ) : (
+            <div className="space-y-4">
+              {lead.ai_evaluation.summary && (
+                <p className="text-[13px] text-slate-700 leading-relaxed italic border-l-2 border-blue-500 pl-3">
+                  "{lead.ai_evaluation.summary}"
+                </p>
+              )}
+              
+              <div className="space-y-3">
+                {(lead.ai_evaluation.key_signals?.length > 0 || lead.ai_evaluation.strengths?.length > 0) && (
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-none" />
+                    <div>
+                      <span className="text-[12px] font-bold text-foreground block mb-1">Score Impact</span>
+                      <ul className="space-y-1">
+                        {(lead.ai_evaluation.key_signals || lead.ai_evaluation.strengths).slice(0, 3).map((s: string, i: number) => (
+                          <li key={i} className="text-[13px] text-emerald-700 leading-relaxed">+ {s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {lead.ai_evaluation.risks?.length > 0 && (
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-none" />
+                    <div>
+                      <span className="text-[12px] font-bold text-foreground block mb-1">Risks</span>
+                      <ul className="space-y-1">
+                        {lead.ai_evaluation.risks.slice(0, 2).map((c: string, i: number) => (
+                          <li key={i} className="text-[13px] text-amber-700 leading-relaxed">- {c}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          )
+        ) : (
+          <div className="space-y-3 py-2 opacity-60">
+            <div className="h-3 bg-slate-200 rounded animate-pulse w-full"></div>
+            <div className="h-3 bg-slate-200 rounded animate-pulse w-5/6"></div>
+            <div className="h-3 bg-slate-200 rounded animate-pulse w-4/6"></div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Tabs Navigation */}
       <div className="flex border-b border-border px-4">

@@ -125,6 +125,20 @@ export interface LeadDetail {
   scores: ScoreDimension[];
   documents: Document[];
   activity_log: ActivityLog[];
+  ai_evaluation: {
+    problem_clarity?: number;
+    market_understanding?: number;
+    differentiation?: number;
+    founder_conviction?: number;
+    execution_confidence?: number;
+    venture_potential?: number;
+    summary: string;
+    strengths: string[];
+    risks: string[];
+    key_signals: string[];
+    recommendation: string;
+    skipped?: boolean;
+  } | null;
 }
 
 export interface QualificationSummary {
