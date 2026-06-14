@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import { Upload, FileText, X, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
+
 interface FileUploadInputProps {
   value: string | null;
   onChange: (value: string | null) => void;
@@ -77,7 +79,7 @@ export function FileUploadInput({
         xhr.addEventListener("error", () => reject(new Error("Network error")));
         xhr.addEventListener("abort", () => reject(new Error("Upload cancelled")));
 
-        xhr.open("POST", "/api/v1/uploads/qualification");
+        xhr.open("POST", `${API_BASE}/uploads/qualification`);
         xhr.send(formData);
       });
 

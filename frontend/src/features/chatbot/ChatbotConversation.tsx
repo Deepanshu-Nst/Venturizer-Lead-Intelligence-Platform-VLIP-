@@ -9,6 +9,8 @@ import { CheckCircle2, Home, RotateCcw, Briefcase, Landmark, Loader2 } from "luc
 import type { FlowType } from "@/features/qualification/types";
 import type { ValidationError } from "@/features/qualification/types";
 
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
+
 type MessageRole = 'bot' | 'user';
 
 interface ChatMessage {
@@ -339,7 +341,7 @@ export function ChatbotConversation() {
     if (currentQuestion.type === 'email' && typeof currentValue === 'string') {
       setIsSubmitting(true);
       try {
-        const checkRes = await fetch(`/api/v1/lead/check-email?email=${encodeURIComponent(currentValue)}`);
+        const checkRes = await fetch(`${API_BASE}/lead/check-email?email=${encodeURIComponent(currentValue)}`);
         const checkJson = await checkRes.json();
         if (checkJson.data?.exists) {
           setFieldError({ field: currentQuestion.id, message: "Lead Already Exists. Please use a different email." });
@@ -377,7 +379,7 @@ export function ChatbotConversation() {
         const body: Record<string, unknown> = { type: state.flowType, answers: finalAnswers };
         if (state.sessionId) body.sessionId = state.sessionId;
 
-        const res = await fetch('/api/v1/lead/submit', {
+        const res = await fetch(`${API_BASE}/lead/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -453,7 +455,7 @@ export function ChatbotConversation() {
     let mounted = true;
     const poll = async () => {
       try {
-        const res = await fetch(`/api/v1/lead/${pendingLeadId}`);
+        const res = await fetch(`${API_BASE}/lead/${pendingLeadId}`);
         if (!res.ok) return;
         const json = await res.json();
         const lead = json.data;

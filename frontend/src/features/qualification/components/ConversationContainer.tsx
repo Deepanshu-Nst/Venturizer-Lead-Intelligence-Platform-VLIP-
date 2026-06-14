@@ -12,6 +12,8 @@ import { NavigationButtons } from "./NavigationButtons";
 import { loadSession, saveSession } from "@/features/qualification/engine/conversationState";
 import type { ValidationError } from "@/features/qualification/types";
 
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
+
 type Direction = "next" | "prev" | null;
 
 export function ConversationContainer() {
@@ -90,7 +92,7 @@ export function ConversationContainer() {
           body.sessionId = state.sessionId;
         }
 
-        const res = await fetch("/api/v1/lead/submit", {
+        const res = await fetch(`${API_BASE}/lead/submit`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
