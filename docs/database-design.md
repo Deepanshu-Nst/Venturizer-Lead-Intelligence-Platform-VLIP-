@@ -15,10 +15,10 @@
 │ status           │       │ industry              │
 │ score            │       │ problem_statement     │
 │ score_bucket     │       │ target_customer       │
-│ created_at       │       │ mvp_status            │
-│ updated_at       │       │ active_users          │
-└──────────────────┘       │ monthly_revenue       │
-       │                   │ growth_rate           │
+│ ai_evaluation    │       │ mvp_status            │
+│ created_at       │       │ active_users          │
+│ updated_at       │       │ monthly_revenue       │
+└──────────────────┘       │ growth_rate           │
        │                   │ team_size             │
        │                   │ has_cofounder         │
        │                   │ funding_ask           │

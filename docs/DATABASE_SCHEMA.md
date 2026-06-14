@@ -33,6 +33,7 @@ erDiagram
         varchar status "new | contacted | qualified | disqualified | archived"
         integer score "0-100"
         varchar score_bucket "hot | good | maybe | low"
+        jsonb ai_evaluation
         uuid assigned_to FK
         varchar source
         timestamptz created_at
@@ -147,6 +148,7 @@ erDiagram
 | `status` | `VARCHAR(20)` | `CHECK (status IN ('new','contacted','qualified','disqualified','archived'))` | `'new'` |
 | `score` | `INTEGER` | `CHECK (score >= 0 AND score <= 100)` | — |
 | `score_bucket` | `VARCHAR(10)` | `CHECK (score_bucket IN ('hot','good','maybe','low'))` | — |
+| `ai_evaluation` | `JSONB` | — | — |
 | `assigned_to` | `UUID` | `REFERENCES users(id) ON DELETE SET NULL` | — |
 | `source` | `VARCHAR(50)` | `NOT NULL` | `'direct'` |
 | `created_at` | `TIMESTAMPTZ` | `NOT NULL` | `NOW()` |

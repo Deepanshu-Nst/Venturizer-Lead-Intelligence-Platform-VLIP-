@@ -234,6 +234,8 @@ stateDiagram-v2
 
 ## Scoring Buckets
 
+The final score is a Hybrid score combining the Rule-Based engine (80%) and the Groq AI Analyst evaluation (20%).
+
 ```mermaid
 graph LR
     SCORE[Score 0-100] --> BUCKET{Bucket Logic}

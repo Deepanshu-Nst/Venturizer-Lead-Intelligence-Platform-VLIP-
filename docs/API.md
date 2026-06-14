@@ -168,6 +168,11 @@ Response `200`:
   "status": "new",
   "score": 82,
   "score_bucket": "hot",
+  "ai_evaluation": {
+    "problem_clarity": 18,
+    "differentiation": 16,
+    "recommendation": "Strong signals, review manually"
+  },
   "documents": [...],
   "scores": [...]
 }
@@ -362,10 +367,10 @@ Response `200`:
     { "status": "new", "count": 60 }
   ],
   "weekly_trend": [
-    { "week": "2026-05-18", "count": 8 },
-    { "week": "2026-05-25", "count": 12 },
-    { "week": "2026-06-01", "count": 15 },
-    { "week": "2026-06-08", "count": 10 }
+    { "week": "2026-06-11", "count": 2 },
+    { "week": "2026-06-12", "count": 5 },
+    { "week": "2026-06-13", "count": 8 },
+    { "week": "2026-06-14", "count": 12 }
   ]
 }
 ```
@@ -433,6 +438,11 @@ Response `200`:
   "score_bucket": "hot",
   "source": "direct",
   "assigned_to": null,
+  "ai_evaluation": {
+    "problem_clarity": 18,
+    "differentiation": 16,
+    "recommendation": "Strong signals, review manually"
+  },
   "created_at": "2026-06-10T...",
   "updated_at": "2026-06-10T...",
   "profile": {

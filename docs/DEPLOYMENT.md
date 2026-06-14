@@ -38,6 +38,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/venturizer
 DATABASE_SSL=false
 CORS_ORIGIN=http://localhost:5173
 API_KEY=dev-api-key-change-in-production
+GROQ_API_KEY=your-groq-api-key-here
 LOG_LEVEL=info
 STORAGE_DRIVER=disk
 UPLOAD_PATH=./uploads
@@ -130,6 +131,7 @@ railway init
 | `DATABASE_SSL` | `true` |
 | `CORS_ORIGIN` | `https://your-frontend.vercel.app` |
 | `API_KEY` | Secure random string (min 8 chars) |
+| `GROQ_API_KEY` | Groq API key for Llama 3 AI Analyst |
 | `LOG_LEVEL` | `info` |
 | `STORAGE_DRIVER` | `disk` (or `s3` for cloud storage) |
 | `UPLOAD_PATH` | `./uploads` |
