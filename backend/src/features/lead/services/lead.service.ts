@@ -112,12 +112,14 @@ export async function submitFlow(req: SubmitRequest): Promise<SubmitResponse> {
           full_name = COALESCE($1, full_name),
           phone = COALESCE($2, phone),
           linkedin_url = COALESCE($3, linkedin_url),
+          conversation_context = $4,
           updated_at = NOW()
-         WHERE id = $4`,
+         WHERE id = $5`,
         [
           (req.answers.full_name as string | undefined) ?? null,
           (req.answers.phone as string | undefined) ?? null,
           (req.answers.linkedin as string | undefined) ?? null,
+          JSON.stringify(req.answers),
           l.id
         ],
         client

@@ -94,6 +94,7 @@ export async function create(input: CreateLeadInput, client?: PoolClient): Promi
     phone: input.phone ?? null,
     linkedin_url: input.linkedin_url ?? null,
     source: input.source ?? "direct",
+    conversation_context: input.conversation_context ?? {},
   }, client);
 }
 

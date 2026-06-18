@@ -1,5 +1,6 @@
 import type { ScoreRule, ScoreOutput, ScoreDimension, ScoreBucket } from "./score-types.js";
 import { getRules } from "./score-rules.js";
+import { detectSubmissionVersion, normalizeAnswersForScoring } from "./version-detector.js";
 
 export function getBucket(score: number): ScoreBucket {
   if (score >= 80) return "hot";
@@ -36,30 +37,37 @@ export function getExplanation(bucket: ScoreBucket): string {
 
 export function calculateWithRules(
   rules: ScoreRule[],
-  answers: Record<string, unknown>
+  rawAnswers: Record<string, unknown>
 ): ScoreOutput {
+  const version = detectSubmissionVersion(rawAnswers);
+  const answers = normalizeAnswersForScoring(rawAnswers, version);
+
   const dimensions: ScoreDimension[] = [];
 
   for (const rule of rules) {
-    const result = rule.evaluator(answers);
+    const result = rule.evaluator(answers, version);
     dimensions.push({
       dimension: rule.dimension,
       score: Math.round(result.score),
       weight: Math.round(rule.weight),
       maxScore: Math.round(result.maxScore),
       rationale: result.rationale,
+      excluded: result.excluded,
     });
   }
 
-  const total = Math.round(Math.max(0, Math.min(
-    dimensions.reduce((sum, d) => sum + d.score, 0),
-    100
-  )));
+  const includedDimensions = dimensions.filter(d => !d.excluded);
 
-  const maxTotal = Math.min(
-    dimensions.reduce((sum, d) => sum + d.weight, 0),
-    100
-  );
+  const rawTotal = includedDimensions.reduce((sum, d) => sum + d.score, 0);
+  const rawMaxTotal = includedDimensions.reduce((sum, d) => sum + d.maxScore, 0);
+
+  // Normalize to 100
+  let total = 0;
+  if (rawMaxTotal > 0) {
+    total = Math.round((rawTotal / rawMaxTotal) * 100);
+  }
+
+  const maxTotal = 100; // Normalized total is out of 100
 
   const bucket = getBucket(total);
 

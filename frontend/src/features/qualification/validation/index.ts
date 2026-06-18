@@ -7,7 +7,8 @@ export interface ValidationError {
 
 export function validateField(
   question: Question,
-  value: unknown
+  value: unknown,
+  answers?: Record<string, unknown>
 ): ValidationError | null {
   if (question.required) {
     if (value === undefined || value === null || value === "") {
@@ -68,6 +69,15 @@ export function validateField(
           message: `Maximum value is ${validation.max}`,
         };
       }
+      if (validation?.minField !== undefined && answers !== undefined) {
+        const minFieldValue = Number(answers[validation.minField]);
+        if (!isNaN(minFieldValue) && num < minFieldValue) {
+          return {
+            field: question.id,
+            message: `Must be at least the minimum value`,
+          };
+        }
+      }
       break;
     }
     case "text":
@@ -99,7 +109,8 @@ export function validateAnswers(
   const errors: ValidationError[] = [];
 
   for (const question of questions) {
-    const error = validateField(question, answers[question.id]);
+    const value = answers[question.id];
+    const error = validateField(question, value, answers);
     if (error) {
       errors.push(error);
     }

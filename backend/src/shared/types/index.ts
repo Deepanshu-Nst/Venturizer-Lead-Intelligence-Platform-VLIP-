@@ -64,6 +64,7 @@ export interface Lead {
   assigned_to: string | null;
   source: string;
   ai_evaluation?: Record<string, any> | null;
+  conversation_context?: Record<string, any> | null;
   created_at: string;
   updated_at: string;
 }
@@ -75,6 +76,7 @@ export interface CreateLeadInput {
   phone?: string | null;
   linkedin_url?: string | null;
   source?: string;
+  conversation_context?: Record<string, any> | null;
 }
 
 export interface LeadFilters {

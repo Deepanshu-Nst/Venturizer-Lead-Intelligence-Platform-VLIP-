@@ -5,12 +5,13 @@ export interface ScoreResult {
   score: number;
   maxScore: number;
   rationale: string;
+  excluded?: boolean;
 }
 
 export interface ScoreRule {
   dimension: string;
   weight: number;
-  evaluator: (answers: Record<string, unknown>) => ScoreResult;
+  evaluator: (answers: Record<string, unknown>, version: "legacy" | "v2.1" | "v2.2") => ScoreResult;
 }
 
 export interface ScoreDimension {
@@ -19,6 +20,7 @@ export interface ScoreDimension {
   weight: number;
   maxScore: number;
   rationale: string;
+  excluded?: boolean;
 }
 
 export interface ScoreOutput {

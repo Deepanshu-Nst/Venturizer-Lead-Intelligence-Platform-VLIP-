@@ -19,7 +19,24 @@ export function applyBranching(
     if (answerValue === undefined || answerValue === null) continue;
 
     for (const condition of rule.conditions) {
-      if (answerValue === condition.ifValue) {
+      const op = condition.operator || "eq";
+      let match = false;
+
+      if (op === "eq") {
+        match = answerValue === condition.ifValue;
+      } else if (op === "gt") {
+        match = Number(answerValue) > Number(condition.ifValue);
+      } else if (op === "gte") {
+        match = Number(answerValue) >= Number(condition.ifValue);
+      } else if (op === "lt") {
+        match = Number(answerValue) < Number(condition.ifValue);
+      } else if (op === "lte") {
+        match = Number(answerValue) <= Number(condition.ifValue);
+      } else if (op === "in" && Array.isArray(condition.ifValue)) {
+        match = condition.ifValue.includes(answerValue);
+      }
+
+      if (match) {
         for (const skipId of condition.skipQuestions) {
           toRemove.add(skipId);
         }

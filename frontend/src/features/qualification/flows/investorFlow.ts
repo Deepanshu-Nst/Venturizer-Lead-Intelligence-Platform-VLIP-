@@ -1,6 +1,7 @@
 import type { Question, QuestionFlow } from "@/features/qualification/types";
 
 const investorQuestions: Question[] = [
+  // --- EVERYONE (10 questions) ---
   {
     id: "full_name",
     question: "What is your full name?",
@@ -13,13 +14,6 @@ const investorQuestions: Question[] = [
     id: "email",
     question: "What is your email address?",
     type: "email",
-    stage: "personal",
-    required: true,
-  },
-  {
-    id: "phone",
-    question: "What is your phone number?",
-    type: "tel",
     stage: "personal",
     required: true,
   },
@@ -42,6 +36,7 @@ const investorQuestions: Question[] = [
       { value: "vc", label: "Venture Capital" },
       { value: "family-office", label: "Family Office" },
       { value: "corporate", label: "Corporate VC" },
+      { value: "operator-angel", label: "Operator Angel" }
     ],
   },
   {
@@ -88,20 +83,7 @@ const investorQuestions: Question[] = [
     type: "number",
     stage: "profile",
     required: true,
-    validation: { min: 0 },
-  },
-  {
-    id: "deployment_timeline",
-    question: "What is your typical deployment timeline?",
-    type: "select",
-    stage: "strategy",
-    required: true,
-    options: [
-      { value: "0-3", label: "0–3 months" },
-      { value: "3-6", label: "3–6 months" },
-      { value: "6-12", label: "6–12 months" },
-      { value: "12-plus", label: "12+ months" },
-    ],
+    validation: { min: 0, minField: "cheque_min" },
   },
   {
     id: "portfolio_count",
@@ -112,52 +94,10 @@ const investorQuestions: Question[] = [
     validation: { min: 0 },
   },
   {
-    id: "geography",
-    question: "What is your preferred geography?",
-    type: "select",
-    stage: "strategy",
-    required: true,
-    options: [
-      { value: "north-america", label: "North America" },
-      { value: "europe", label: "Europe" },
-      { value: "asia", label: "Asia" },
-      { value: "global", label: "Global" },
-    ],
-  },
-  {
-    id: "follow_on_strategy",
-    question: "What is your follow-on investment strategy?",
-    type: "textarea",
-    stage: "strategy",
-    required: true,
-    validation: { minLength: 50 },
-  },
-  {
-    id: "value_add",
-    question: "How do you add value to your portfolio companies?",
-    type: "textarea",
-    stage: "strategy",
-    required: true,
-    validation: { minLength: 50 },
-  },
-  {
-    id: "decision_timeline",
-    question: "How quickly do you typically make investment decisions?",
-    type: "select",
-    stage: "timeline",
-    required: true,
-    options: [
-      { value: "1-2", label: "1–2 weeks" },
-      { value: "2-4", label: "2–4 weeks" },
-      { value: "4-8", label: "4–8 weeks" },
-      { value: "8-plus", label: "8+ weeks" },
-    ],
-  },
-  {
     id: "actively_investing",
     question: "Are you actively investing right now?",
     type: "select",
-    stage: "timeline",
+    stage: "strategy",
     required: true,
     options: [
       { value: "yes", label: "Yes" },
@@ -165,20 +105,82 @@ const investorQuestions: Question[] = [
       { value: "paused", label: "Paused" },
     ],
   },
+  // --- ANGEL (2 questions) ---
   {
-    id: "looking_for_deals",
-    question: "Are you currently looking for new deals?",
-    type: "boolean",
-    stage: "timeline",
-    required: true,
+    id: "angel_why_invest",
+    question: "Why do you invest in startups?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
   },
   {
+    id: "angel_founder_traits",
+    question: "What founder traits matter most to you?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  // --- VC (2 questions) ---
+  {
+    id: "vc_themes",
+    question: "What themes are you most excited about right now?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  {
+    id: "vc_meeting_signal",
+    question: "What signal gets you interested enough to take a meeting?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  // --- FAMILY OFFICE (2 questions) ---
+  {
+    id: "fo_time_horizon",
+    question: "What time horizon do you optimize for?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  {
+    id: "fo_success_outcome",
+    question: "What outcome makes an investment successful for you?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  // --- CORPORATE VC (2 questions) ---
+  {
+    id: "cvc_strategic_thesis",
+    question: "What strategic themes or business areas are you actively investing around?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  {
+    id: "cvc_support_model",
+    question: "Beyond capital, how can your organization help startups succeed?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  // --- OPERATOR ANGEL (1 question) ---
+  {
+    id: "oa_value_provided",
+    question: "What specific value do you provide to founders?",
+    type: "textarea",
+    stage: "strategy",
+    required: false,
+  },
+  // --- FINAL (EVERYONE) ---
+  {
     id: "investment_thesis",
-    question: "Upload your investment thesis",
+    question: "Upload your investment thesis or investment mandate (optional)",
     type: "file",
-    stage: "timeline",
-    required: true,
-    helperText: "PDF only, max 10MB. Drag & drop or click to browse.",
+    stage: "strategy",
+    required: false,
+    helperText: "PDF only, max 10MB.",
   },
 ];
 
@@ -189,5 +191,5 @@ export const investorFlow: QuestionFlow = {
     "Help us understand your investment thesis so we can surface the best opportunities.",
   questions: investorQuestions,
   totalQuestions: investorQuestions.length,
-  stages: ["personal", "profile", "strategy", "timeline"],
+  stages: ["personal", "profile", "strategy"],
 };

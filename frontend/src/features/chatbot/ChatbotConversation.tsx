@@ -263,9 +263,16 @@ export function ChatbotConversation() {
       setInitialized(true);
       hasGreetedRef.current = true;
       const greeting = BOT_PERSONA_INTRO[initialPersona];
-      addBotMessage(greeting, 400).then(() => {
-        selectFlow(initialPersona);
-        clearPersona();
+      
+      import('@/features/qualification/engine/conversationEngine').then(({ buildQuestionFlow }) => {
+        const questions = buildQuestionFlow({ flowType: initialPersona, answers: {} });
+        const firstQ = questions[0];
+        
+        addBotMessage(greeting, 400).then(() => {
+          selectFlow(initialPersona);
+          clearPersona();
+          if (firstQ) addBotMessage(firstQ.question, 900);
+        });
       });
       return;
     }
@@ -278,26 +285,11 @@ export function ChatbotConversation() {
   }, [isOpen, initialPersona, initialized, state.flowType, state.questions, state.currentIndex, state.answers, reset, selectFlow, clearPersona, addBotMessage]);
 
   const prevFlowType = useRef<FlowType | null>(null);
-  useEffect(() => {
-    if (!state.flowType || state.flowType === prevFlowType.current) return;
-    
-    if (initialized && prevFlowType.current === null) {
-      if (hasGreetedRef.current) {
-        // We already greeted via initialPersona. Just ask the first question.
-        const firstQ = state.questions[0];
-        if (firstQ) addBotMessage(firstQ.question, 600);
-      } else {
-        // Normal selection flow (user clicked Founder/Investor in chat)
-        const greeting = BOT_FLOW_GREETINGS[state.flowType];
-        addBotMessage(greeting, 400).then(() => {
-          const firstQ = state.questions[0];
-          if (firstQ) addBotMessage(firstQ.question, 900);
-        });
-      }
-    }
+  
+  // Track previous flow type synchronously
+  if (state.flowType !== prevFlowType.current) {
     prevFlowType.current = state.flowType;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.flowType]);
+  }
 
   // Auto-scroll
   useEffect(() => {
@@ -310,7 +302,20 @@ export function ChatbotConversation() {
     addUserMessage(flowType === 'founder' ? 'Founder' : 'Investor');
     setFieldError(null);
     selectFlow(flowType);
-  }, [addUserMessage, selectFlow]);
+    
+    // We trigger the bot messages directly here instead of using a brittle useEffect
+    const greeting = BOT_FLOW_GREETINGS[flowType];
+    
+    // The state hasn't updated yet, but we know the first question is from an empty answer set
+    import('@/features/qualification/engine/conversationEngine').then(({ buildQuestionFlow }) => {
+      const questions = buildQuestionFlow({ flowType, answers: {} });
+      const firstQ = questions[0];
+      
+      addBotMessage(greeting, 400).then(() => {
+        if (firstQ) addBotMessage(firstQ.question, 900);
+      });
+    });
+  }, [addUserMessage, selectFlow, addBotMessage]);
 
   const handleAnswer = useCallback((value: unknown) => {
     if (!state.questions[state.currentIndex]) return;
@@ -334,7 +339,7 @@ export function ChatbotConversation() {
       answer(currentQuestion.id, overrideValue);
     }
 
-    const error = validateField(currentQuestion, currentValue);
+    const error = validateField(currentQuestion, currentValue, state.answers);
     if (error) { setFieldError(error); return; }
     
     // Check email uniqueness if the current question is email
@@ -440,14 +445,15 @@ export function ChatbotConversation() {
   const handleReset = useCallback(() => {
     reset();
     prevFlowType.current = null;
+    hasGreetedRef.current = false;
+    setInitialized(false);
     setMessages([]);
     setFieldError(null);
     setIsSubmitting(false);
     setCompletionScore(null);
     setPendingLeadId(null);
     isSubmittingRef.current = false;
-    addBotMessage(BOT_INTRO, 400);
-  }, [reset, addBotMessage]);
+  }, [reset]);
 
   useEffect(() => {
     if (!pendingLeadId) return;
@@ -494,9 +500,20 @@ export function ChatbotConversation() {
       {state.flowType && !isComplete && totalQ > 0 && (
         <div className="flex-none px-5 py-2 border-b border-white/[0.06]">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
-              {state.flowType === 'founder' ? 'Founder Qualification' : 'Investor Profile'}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+                {state.flowType === 'founder' ? 'Founder Qualification' : 'Investor Profile'}
+              </span>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="flex items-center gap-1.5 text-[10px] font-medium text-white/30 hover:text-white transition-colors"
+                title="Start Over"
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span>Start Over</span>
+              </button>
+            </div>
             <span className="text-[10px] text-white/25 tabular-nums">
               {currentQ} / {totalQ}
             </span>
@@ -600,9 +617,7 @@ export function ChatbotConversation() {
       )}
 
       {/* Input area */}
-      {completionScore !== null ? (
-        <CompletionOutcomeCard score={completionScore} flowType={state.flowType} onReset={handleReset} />
-      ) : pendingLeadId !== null ? (
+      {completionScore !== null ? null : pendingLeadId !== null ? (
         <div className="flex-none border-t border-white/[0.07] px-8 py-8 flex flex-col items-center justify-center text-center space-y-4 bg-[#0d1428]">
           <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
           <p className="text-[13px] text-white/70 font-medium">AI Review Pending...</p>

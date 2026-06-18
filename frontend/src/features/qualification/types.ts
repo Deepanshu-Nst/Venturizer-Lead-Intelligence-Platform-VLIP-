@@ -33,6 +33,7 @@ export interface Validation {
   minLength?: number;
   maxLength?: number;
   pattern?: string;
+  minField?: string;
 }
 
 export interface QuestionOption {
@@ -114,6 +115,7 @@ export interface BranchingRule {
 }
 
 export interface BranchCondition {
+  operator?: "eq" | "gt" | "gte" | "lt" | "lte" | "in";
   ifValue: unknown;
   skipQuestions: string[];
 }

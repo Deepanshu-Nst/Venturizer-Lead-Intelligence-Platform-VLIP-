@@ -1,4 +1,5 @@
 import type { ScoreRule, ScoreResult } from "./score-types.js";
+import type { FlowVersion } from "./version-detector.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -73,7 +74,10 @@ function getQualityPenalty(answers: Record<string, unknown>): number {
 const experience: ScoreRule = {
   dimension: "experience",
   weight: 10,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+    if (version !== "legacy") {
+      return { score: 0, maxScore: 0, rationale: "Excluded in V2.1+", excluded: true };
+    }
     const prevStartup = answers.prev_startup === "yes" ? 4 : 0;
     const years = Math.max(num(answers.industry_experience), 0);
 
@@ -99,8 +103,7 @@ const experience: ScoreRule = {
 const founderMarketFit: ScoreRule = {
   dimension: "founder_market_fit",
   weight: 10,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
-    const years = num(answers.industry_experience);
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const problem = str(answers.problem_statement);
     const target = str(answers.target_customer);
 
@@ -119,11 +122,18 @@ const founderMarketFit: ScoreRule = {
     // Target customer specificity
     const targetScore = target.length >= 10 ? 2 : target.length > 0 ? 1 : 0;
 
-    // Experience alignment
+    // Experience alignment (legacy only)
     let experienceScore = 0;
-    if (years >= 5) experienceScore = 5;
-    else if (years >= 3) experienceScore = 3;
-    else if (years >= 1) experienceScore = 1;
+    if (version === "legacy") {
+      const years = num(answers.industry_experience);
+      if (years >= 5) experienceScore = 5;
+      else if (years >= 3) experienceScore = 3;
+      else if (years >= 1) experienceScore = 1;
+    } else {
+      // In V2.2, we redistribute experienceScore to traction and problem depth
+      // We will just scale up problemDepth and targetScore or just return out of smaller maxScore.
+      // Let's just exclude the experience portion. maxScore becomes 5 instead of 10.
+    }
 
     // Traction confidence boost to FMF
     const users = num(answers.active_users);
@@ -133,15 +143,16 @@ const founderMarketFit: ScoreRule = {
       tractionBoost = 2;
     }
 
-    const score = Math.min(problemDepth + targetScore + experienceScore + tractionBoost, 10);
+    const maxScore = version === "legacy" ? 10 : 5;
+    const score = Math.min(problemDepth + targetScore + experienceScore + tractionBoost, maxScore);
 
     return {
       score,
-      maxScore: 10,
+      maxScore,
       rationale:
         `Problem depth: (${problemDepth}/3), ` +
         `Target specificity: (${targetScore}/2), ` +
-        `Experience: ${years}y (${experienceScore}/5), ` +
+        (version === "legacy" ? `Experience: (${experienceScore}/5), ` : "") +
         `Traction boost: +${tractionBoost}`,
     };
   },
@@ -154,7 +165,7 @@ const founderMarketFit: ScoreRule = {
 const problemMarket: ScoreRule = {
   dimension: "problem_market",
   weight: 5,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const problem = str(answers.problem_statement);
     const target = str(answers.target_customer);
     const industryArray = Array.isArray(answers.industry) ? answers.industry : [str(answers.industry)];
@@ -182,7 +193,7 @@ const problemMarket: ScoreRule = {
 const mvpReadiness: ScoreRule = {
   dimension: "mvp_readiness",
   weight: 10,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const mvpScores: Record<string, number> = {
       idea: 0,
       prototype: 3,
@@ -209,7 +220,7 @@ const mvpReadiness: ScoreRule = {
 const traction: ScoreRule = {
   dimension: "traction",
   weight: 40,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const users = num(answers.active_users);
     const revenue = num(answers.monthly_revenue);
     const growth = num(answers.growth_rate);
@@ -282,8 +293,11 @@ const traction: ScoreRule = {
 const teamStrength: ScoreRule = {
   dimension: "team",
   weight: 10,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
-    const teamSize = Math.max(num(answers.team_size), 1);
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+    if (version !== "legacy") {
+      return { score: 0, maxScore: 0, rationale: "Excluded in V2.1+", excluded: true };
+    }
+    const teamSize = num(answers.team_size);
     const hasCoFounder = answers.has_cofounder === "yes";
 
     // Co-founder bonus (0–4)
@@ -311,7 +325,16 @@ const teamStrength: ScoreRule = {
 const fundingReadiness: ScoreRule = {
   dimension: "funding_readiness",
   weight: 10,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+    if (version !== "legacy") {
+      // In V2.2, we only have pitch_deck
+      const hasDeck = answers.pitch_deck ? 10 : 0;
+      return {
+        score: hasDeck,
+        maxScore: 10,
+        rationale: `Pitch deck: ${hasDeck ? "yes (+10)" : "no"}`,
+      };
+    }
     const ask = num(answers.funding_ask);
     const revenue = num(answers.monthly_revenue);
     const users = num(answers.active_users);
@@ -360,7 +383,7 @@ const fundingReadiness: ScoreRule = {
 const evidenceQuality: ScoreRule = {
   dimension: "evidence_quality",
   weight: 5,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const qualityPenalty = getQualityPenalty(answers);
 
     // Anti-gaming / anti-gibberish governor
@@ -378,7 +401,8 @@ const evidenceQuality: ScoreRule = {
     if (num(answers.monthly_revenue) > 0) score += 2;
     if (num(answers.active_users) > 0) score += 1;
     if (num(answers.growth_rate) > 0) score += 1;
-    if (num(answers.funding_ask) > 0) score += 1;
+    if (version === "legacy" && num(answers.funding_ask) > 0) score += 1;
+    if (version !== "legacy" && answers.pitch_deck) score += 1; // Swap funding ask for deck in V2.2
 
     score = Math.min(score, 5);
 
@@ -416,9 +440,14 @@ export const founderRules: ScoreRule[] = [
 const activeInvestor: ScoreRule = {
   dimension: "active_investor",
   weight: 20,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const activelyInvesting = str(answers.actively_investing);
-    const lookingNow = answers.looking_for_deals === true || answers.looking_for_deals === "true";
+    let lookingNow = answers.looking_for_deals === true || answers.looking_for_deals === "true";
+    
+    // In V2.2, looking_for_deals is not asked, so we derive it entirely from actively_investing
+    if (version !== "legacy") {
+      lookingNow = activelyInvesting === "yes";
+    }
 
     const investingScore = activelyInvesting === "yes" ? 10 : 2;
     const lookingScore = lookingNow ? 10 : 0;
@@ -435,7 +464,7 @@ const activeInvestor: ScoreRule = {
 const chequeSize: ScoreRule = {
   dimension: "cheque_size",
   weight: 20,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const chequeMax = num(answers.cheque_max);
 
     const score = chequeMax >= 500000 ? 20 : chequeMax >= 100000 ? 15 : chequeMax > 0 ? 5 : 0;
@@ -450,7 +479,10 @@ const chequeSize: ScoreRule = {
 const deploymentTimeline: ScoreRule = {
   dimension: "deployment_timeline",
   weight: 15,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+    if (version !== "legacy") {
+      return { score: 0, maxScore: 0, rationale: "Excluded in V2.1+", excluded: true };
+    }
     const timeline = str(answers.deployment_timeline);
     const timelineScores: Record<string, number> = {
       "0-3": 15,
@@ -471,7 +503,7 @@ const deploymentTimeline: ScoreRule = {
 const portfolioQuality: ScoreRule = {
   dimension: "portfolio_quality",
   weight: 15,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const portfolioCount = num(answers.portfolio_count);
 
     const score = portfolioCount >= 5 ? 15 : portfolioCount >= 2 ? 10 : portfolioCount > 0 ? 5 : 0;
@@ -486,7 +518,7 @@ const portfolioQuality: ScoreRule = {
 const sectorMatch: ScoreRule = {
   dimension: "sector_match",
   weight: 15,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const raw = answers.sector_focus;
     const sectors: string[] = Array.isArray(raw)
       ? raw.filter((s): s is string => typeof s === "string")
@@ -507,7 +539,7 @@ const sectorMatch: ScoreRule = {
 const valueAdd: ScoreRule = {
   dimension: "value_add",
   weight: 15,
-  evaluator(answers: Record<string, unknown>): ScoreResult {
+  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     const description = str(answers.value_add);
     const length = description.length;
 

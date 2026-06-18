@@ -103,10 +103,11 @@ export function ChatbotPanel() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 mr-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
               <span className="text-[11px] text-white/35">Online</span>
             </div>
+            {/* The Start Over button is passed down or we can just let Conversation handle it. Wait, the reset function is inside useQualificationMachine. It's better to put Start Over inside ChatbotConversation or use an event listener. Let's just put it in ChatbotConversation instead. */}
             <button
               type="button"
               onClick={close}

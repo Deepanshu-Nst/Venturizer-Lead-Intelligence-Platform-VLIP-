@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { config } from "../../../config/index.js";
+import { detectSubmissionVersion, normalizeAnswersForScoring } from "./version-detector.js";
 
 // Initialize Groq client
 // Use default key or empty string if not provided in env, groq-sdk will throw if empty when calling
@@ -30,17 +31,24 @@ export async function evaluateLeadWithAI(
     return null;
   }
 
+  const version = detectSubmissionVersion(answers);
+  const normalizedAnswers = normalizeAnswersForScoring(answers, version);
+
   // Sanitize answers for the prompt
-  const answerPairs = Object.entries(answers)
+  const answerPairs = Object.entries(normalizedAnswers)
     .filter(([k]) => k !== "pitch_deck" && k !== "investment_thesis")
     .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
     .join("\n");
 
   const isFounder = type === "founder";
+  const stageOrPersona = isFounder 
+    ? (normalizedAnswers.mvp_status ?? "founder") 
+    : (normalizedAnswers.investor_type ?? "investor");
   
   const systemPrompt = `You are a Partner at Sequoia Capital.
 You evaluate early-stage startup applications and investor profiles.
-Evaluate the following ${type} application based on their answers.
+Evaluate the following ${stageOrPersona} (${type}) application based on their answers.
+The submission version is ${version}.
 
 Your job is NOT to be impressed by polished writing.
 You must prioritize evidence over storytelling.
@@ -79,29 +87,41 @@ Prioritize: revenue, growth, users, and MVP maturity over writing.
 If a company has $10k+ MRR or 1000+ users, their execution is undeniably proven. Score them 9+.
 
 Venture Potential (0-10)
-Can this become a venture-scale business?
+Can this become a venture-scale business? For investors, do they have the capital and network to back venture-scale businesses?
+
+FOR INVESTORS:
+Map your evaluation to the same 6 dimensions:
+- Problem Clarity = Thesis Quality (How clearly do they understand the venture asset class?)
+- Market Understanding = Sector Expertise (Do they know the markets they invest in?)
+- Differentiation = Value Add (Why should a founder take their money over someone else's?)
+- Founder Conviction = Deployment Reliability (How actively and decisively do they invest?)
+- Execution Confidence = Portfolio Construction (Do they have a coherent strategy?)
+- Venture Potential = Strategic Fit (Are they a good fit for top-tier founders?)
 
 IMPORTANT:
 Revenue and user traction matter more than eloquent writing.
 A profitable boring startup should score higher than a beautifully written startup with no traction.
-DO NOT punish concise founders. A short, clear answer can still be strong.
+For investors, clarity of thesis and value-add is more important than the length of their answers.
+DO NOT punish concise answers. A short, clear answer can still be strong.
+If a stage or persona inherently does not have certain data (e.g. an idea-stage founder has no revenue, or an investor doesn't answer a non-applicable question), DO NOT penalize them. Evaluate based ONLY on the signal they did provide.
 
 Provide a brutally honest, accurate, and structured JSON evaluation.
 
 Return ONLY a valid JSON object with the following schema:
 {
-  "${isFounder ? 'problem_clarity' : 'investment_thesis_clarity'}": <score 0-10>,
-  "${isFounder ? 'market_understanding' : 'sector_expertise'}": <score 0-10>,
-  "${isFounder ? 'differentiation' : 'value_add_potential'}": <score 0-10>,
-  "${isFounder ? 'founder_conviction' : 'deployment_capacity'}": <score 0-10>,
-  "${isFounder ? 'execution_confidence' : 'network_quality'}": <score 0-10>,
-  "${isFounder ? 'venture_potential' : 'strategic_fit'}": <score 0-10>,
+  "problem_clarity": <score 0-10>,
+  "market_understanding": <score 0-10>,
+  "differentiation": <score 0-10>,
+  "founder_conviction": <score 0-10>,
+  "execution_confidence": <score 0-10>,
+  "venture_potential": <score 0-10>,
   "summary": "<2-3 sentence executive summary of the lead>",
   "strengths": ["<strength 1>", "<strength 2>"],
   "risks": ["<risk 1>", "<risk 2>"],
   "key_signals": ["<key signal 1>", "<key signal 2>"],
   "recommendation": "<short recommendation, e.g., 'Schedule Intro Call' or 'Pass'>"
-}`;
+}
+`;
 
   const userPrompt = `Here is the ${type} application:
 ${answerPairs}`;
