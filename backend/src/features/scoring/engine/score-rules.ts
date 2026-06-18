@@ -165,7 +165,7 @@ const founderMarketFit: ScoreRule = {
 const problemMarket: ScoreRule = {
   dimension: "problem_market",
   weight: 5,
-  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+  evaluator(answers: Record<string, unknown>, _version: FlowVersion): ScoreResult {
     const problem = str(answers.problem_statement);
     const target = str(answers.target_customer);
     const industryArray = Array.isArray(answers.industry) ? answers.industry : [str(answers.industry)];
@@ -193,7 +193,7 @@ const problemMarket: ScoreRule = {
 const mvpReadiness: ScoreRule = {
   dimension: "mvp_readiness",
   weight: 10,
-  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+  evaluator(answers: Record<string, unknown>, _version: FlowVersion): ScoreResult {
     const mvpScores: Record<string, number> = {
       idea: 0,
       prototype: 3,
@@ -220,7 +220,7 @@ const mvpReadiness: ScoreRule = {
 const traction: ScoreRule = {
   dimension: "traction",
   weight: 40,
-  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+  evaluator(answers: Record<string, unknown>, _version: FlowVersion): ScoreResult {
     const users = num(answers.active_users);
     const revenue = num(answers.monthly_revenue);
     const growth = num(answers.growth_rate);
@@ -464,7 +464,7 @@ const activeInvestor: ScoreRule = {
 const chequeSize: ScoreRule = {
   dimension: "cheque_size",
   weight: 20,
-  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+  evaluator(answers: Record<string, unknown>, _version: FlowVersion): ScoreResult {
     const chequeMax = num(answers.cheque_max);
 
     const score = chequeMax >= 500000 ? 20 : chequeMax >= 100000 ? 15 : chequeMax > 0 ? 5 : 0;
@@ -503,7 +503,7 @@ const deploymentTimeline: ScoreRule = {
 const portfolioQuality: ScoreRule = {
   dimension: "portfolio_quality",
   weight: 15,
-  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+  evaluator(answers: Record<string, unknown>, _version: FlowVersion): ScoreResult {
     const portfolioCount = num(answers.portfolio_count);
 
     const score = portfolioCount >= 5 ? 15 : portfolioCount >= 2 ? 10 : portfolioCount > 0 ? 5 : 0;
@@ -518,7 +518,7 @@ const portfolioQuality: ScoreRule = {
 const sectorMatch: ScoreRule = {
   dimension: "sector_match",
   weight: 15,
-  evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+  evaluator(answers: Record<string, unknown>, _version: FlowVersion): ScoreResult {
     const raw = answers.sector_focus;
     const sectors: string[] = Array.isArray(raw)
       ? raw.filter((s): s is string => typeof s === "string")

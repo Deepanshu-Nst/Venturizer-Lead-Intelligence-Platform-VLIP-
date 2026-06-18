@@ -58,7 +58,7 @@ export function calculateWithRules(
 
   const includedDimensions = dimensions.filter(d => !d.excluded);
 
-  const rawTotal = includedDimensions.reduce((sum, d) => sum + d.score, 0);
+
   const rawMaxTotal = includedDimensions.reduce((sum, d) => sum + d.maxScore, 0);
 
   let multiplier = 1;

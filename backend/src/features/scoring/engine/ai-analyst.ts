@@ -37,13 +37,13 @@ export async function evaluateLeadWithAI(
   // Sanitize answers for the prompt
   const answerPairs = Object.entries(normalizedAnswers)
     .filter(([k]) => k !== "pitch_deck" && k !== "investment_thesis")
-    .map(([k, v]) => `${k.replace(/_/g, " ")}: ${v}`)
+    .map(([k, v]) => `${k.replace(/_/g, " ")}: ${String(v)}`)
     .join("\n");
 
   const isFounder = type === "founder";
   const stageOrPersona = isFounder 
-    ? (normalizedAnswers.mvp_status ?? "founder") 
-    : (normalizedAnswers.investor_type ?? "investor");
+    ? (String(normalizedAnswers.mvp_status ?? "founder")) 
+    : (String(normalizedAnswers.investor_type ?? "investor"));
   
   const systemPrompt = `You are a Partner at Sequoia Capital.
 You evaluate early-stage startup applications and investor profiles.
@@ -163,7 +163,7 @@ export function calculateAiScore(
   
   // We expect 6 scores out of 10. If there are fewer/more, average them proportionally.
   const maxPossible = scores.length * 10;
-  let aiScore = Math.round((sum / maxPossible) * 100);
+  const aiScore = Math.round((sum / maxPossible) * 100);
 
   return aiScore;
 }
