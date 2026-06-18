@@ -1,226 +1,608 @@
 # Venturizer Lead Intelligence Platform (VLIP)
 
-Automated lead qualification system for venture capital. Replaces manual review of 500+ monthly inbound founder and investor enquiries with a conversational qualification flow, rule-based scoring engine, and comprehensive ERP dashboard.
+An AI-assisted venture qualification operating system that automates the review of founder and investor enquiries through conversational qualification, hybrid scoring, and operator-focused analytics.
 
-## Tech Stack
+VLIP replaces manual lead screening with structured conversations, real-time validation, automated scoring, and a centralized ERP dashboard, enabling the Venturizer team to identify high-signal opportunities faster and more consistently.
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS 3, shadcn/ui, Recharts |
-| Backend | Node.js, Express 4, TypeScript |
-| Database | PostgreSQL 16+ |
-| File Storage | Local disk or AWS S3 (configurable) |
-| Hosting | Vercel (frontend), Railway (backend) |
+---
 
-## Features
+https://venturizer-lead-intelligence-platfo.vercel.app/
 
-### Founder Qualification Flow — 18 questions across 7 stages
-Personal → Background → Startup → Product → Traction → Team → Fundraising
+---
 
-### Investor Qualification Flow — 17 questions across 4 stages
-Personal → Profile → Strategy → Timeline
+# Problem Statement
 
-### Real-Time Validation
-Email/URL/phone format checks, length constraints, range limits, required-field enforcement — all client-side before advancing.
+Venturizer receives 500+ organic inbound enquiries every month from founders and investors.
 
-### File Uploads
-PDF-only upload (10MB max) with triple validation: MIME check, magic bytes verification, and file size enforcement.
+Manual review creates operational bottlenecks:
 
-### Qualification Scoring
-Rule-based engine computing 0–100 scores across 7 founder dimensions or 6 investor dimensions. Buckets: Hot (80–100), Good (60–79), Maybe (40–59), Low (0–39).
+* Slow response times
+* Inconsistent qualification
+* Difficult prioritization
+* Limited visibility into pipeline health
 
-### ERP Dashboard
-- Summary cards with trend indicators
-- Filterable, sortable, paginated lead table
-- Lead detail drawer with score breakdown
-- Full lead profile with documents, activity log, notes
-- Status workflow (new → reviewing → qualified → contacted → rejected → converted)
-- Analytics page with 30-day daily trend and bucket charts
+VLIP solves this by providing:
 
-### Mobile Responsive
-Full responsive design — sidebar collapses on mobile, cards stack vertically, touch-friendly inputs.
+* Conversational qualification flows
+* Real-time validation
+* AI-assisted lead evaluation
+* Automated scoring
+* Operator dashboard for review and decision-making
 
-## Project Structure
+---
 
+# Key Features
+
+## Founder Qualification Flow
+
+18-question conversational qualification covering:
+
+* Personal Information
+* Founder Background
+* Startup Information
+* Product & MVP
+* Traction
+* Team
+* Fundraising
+
+### Collected Data
+
+* Personal details
+* Contact information
+* Industry
+* Problem statement
+* Target customer
+* MVP status
+* Revenue
+* Growth rate
+* Team composition
+* Funding ask
+* Validation evidence
+
+---
+
+## Investor Qualification Flow
+
+17-question conversational qualification covering:
+
+* Personal Information
+* Investor Profile
+* Investment Strategy
+* Portfolio
+* Deployment Timeline
+
+### Collected Data
+
+* Investment thesis
+* Stage focus
+* Cheque size
+* Portfolio size
+* Sector preferences
+* Support model
+* Deployment timeline
+
+---
+
+## Conversational Qualification Engine
+
+Rather than presenting a long form, VLIP guides users through a structured conversation.
+
+Features:
+
+* One question at a time
+* Dynamic branching
+* Session persistence
+* Progress tracking
+* Mobile-first experience
+
+---
+
+## Real-Time Validation
+
+Validation occurs before users can continue.
+
+Supported validations:
+
+* Email validation
+* URL validation
+* Phone validation
+* Numeric range validation
+* Required field validation
+* Length constraints
+* PDF upload validation
+
+---
+
+## Secure Document Uploads
+
+Supports:
+
+* PDF only
+* 10MB maximum size
+
+Validation includes:
+
+* MIME type validation
+* Magic byte verification
+* File size enforcement
+
+Storage options:
+
+* Local disk
+* AWS S3 compatible storage
+
+---
+
+# Hybrid Qualification Engine
+
+VLIP uses a two-layer scoring architecture.
+
+## Layer 1 — Quantitative Rule Engine (60%)
+
+Deterministic scoring based on measurable evidence.
+
+### Founder Signals
+
+* Revenue
+* Users
+* Growth rate
+* Team size
+* Co-founder presence
+* Industry experience
+* Previous startup experience
+* MVP readiness
+* Funding readiness
+
+### Investor Signals
+
+* Active investing status
+* Portfolio quality
+* Cheque size
+* Sector focus
+* Deployment timeline
+* Value-add potential
+
+---
+
+## Layer 2 — AI Venture Analyst (40%)
+
+Powered by Groq + Llama 3.3 70B.
+
+The AI analyst reviews qualitative answers and generates:
+
+### Founder Analysis
+
+* Problem Clarity
+* Market Understanding
+* Differentiation
+* Founder Conviction
+* Execution Confidence
+* Venture Potential
+
+### Investor Analysis
+
+* Thesis Clarity
+* Sector Expertise
+* Strategic Fit
+* Deployment Capacity
+* Network Quality
+* Value Add Potential
+
+The AI layer produces:
+
+* Executive Summary
+* Key Signals
+* Strengths
+* Risks
+* Recommendation
+
+This allows the platform to capture qualitative venture signals while still prioritizing hard business evidence.
+
+---
+
+# Qualification Buckets
+
+| Score  | Bucket       | Action                       |
+| ------ | ------------ | ---------------------------- |
+| 80–100 | Strong Fit   | Immediate outreach + program |
+| 60–79  | Qualified    | Standard follow-up           |
+| 40–59  | Review       | Request clarification        |
+| 0–39   | Low Priority | Polite rejection             |
+
+---
+
+# ERP Dashboard
+
+Designed for internal operator workflows.
+
+## Operations Overview
+
+* Total leads
+* Founder vs investor split
+* Score distribution
+* Qualification trends
+* Queue health
+
+---
+
+## Lead Review Queue
+
+Features:
+
+* Filtering
+* Sorting
+* Search
+* Status management
+* Score-based prioritization
+
+Statuses:
+
+* New
+* Reviewing
+* Qualified
+* Contacted
+* Rejected
+* Converted
+
+---
+
+## Lead Detail View
+
+Includes:
+
+* Full applicant profile
+* Qualification score
+* AI analysis
+* Score breakdown
+* Activity history
+* Status management
+* Recommendation engine
+
+---
+
+## Analytics Dashboard
+
+Provides:
+
+* Inbound volume trends
+* Qualification distribution
+* Conversion funnel
+* Persona breakdown
+* Review queue metrics
+* Performance KPIs
+
+---
+
+# Tech Stack
+
+| Layer            | Technology                  |
+| ---------------- | --------------------------- |
+| Frontend         | React 18                    |
+| Language         | TypeScript                  |
+| Build Tool       | Vite                        |
+| Styling          | Tailwind CSS                |
+| UI Components    | shadcn/ui                   |
+| Animations       | Framer Motion               |
+| Smooth Scrolling | Lenis                       |
+| Charts           | Recharts                    |
+| Backend          | Node.js                     |
+| Framework        | Express                     |
+| Database         | PostgreSQL                  |
+| Database Hosting | Neon                        |
+| AI               | Groq + Llama 3.3 70B        |
+| Frontend Hosting | Vercel                      |
+| Backend Hosting  | Render / Railway Compatible |
+
+---
+
+# System Architecture
+
+```text
+Website Visitor
+        │
+        ▼
+Qualification Chatbot
+        │
+        ▼
+Validation Engine
+        │
+        ▼
+Rule-Based Scoring
+        │
+        ▼
+AI Venture Analyst
+        │
+        ▼
+PostgreSQL Database
+        │
+        ▼
+Operator Dashboard
 ```
+
+---
+
+# Project Structure
+
+```text
 venturizer-lead-platform/
-├── frontend/                    # React + Vite
-│   ├── src/
-│   │   ├── features/
-│   │   │   ├── landing/         # Landing page
-│   │   │   ├── qualification/   # Founder/investor flows
-│   │   │   │   ├── flows/       # Question definitions + branching
-│   │   │   │   ├── engine/      # State machine + question engine
-│   │   │   │   ├── hooks/       # useQualificationMachine
-│   │   │   │   ├── components/  # UI components + 10 input types
-│   │   │   │   └── validation/  # Per-field validation rules
-│   │   │   └── dashboard/       # ERP dashboard
-│   │   │       ├── components/  # SummaryCards, LeadTable, Charts, etc.
-│   │   │       ├── hooks/       # Data fetching hooks
-│   │   │       └── services/    # API client
-│   │   ├── shared/              # Layouts, UI primitives, utils
-│   │   ├── App.tsx              # Route definitions
-│   │   └── main.tsx             # Entry point
-│   ├── tailwind.config.ts
-│   └── vite.config.ts
-│
-├── backend/                     # Node.js + Express
-│   ├── src/
-│   │   ├── features/
-│   │   │   ├── lead/            # Qualification flow (new)
-│   │   │   ├── qualification/   # Qualification flow (original)
-│   │   │   ├── scoring/         # Scoring engine
-│   │   │   ├── dashboard/       # Dashboard APIs
-│   │   │   ├── uploads/         # File upload handling
-│   │   │   ├── auth/            # API key auth
-│   │   │   ├── leads/           # Lead CRUD
-│   │   │   └── health/          # Liveness/readiness probes
-│   │   ├── shared/
-│   │   │   ├── db/              # Database pool + repositories
-│   │   │   ├── middleware/      # Auth, validation, error handling
-│   │   │   └── types/           # Shared type definitions
-│   │   ├── migrations/          # SQL schema migrations
-│   │   └── index.ts             # Entry point
-│   └── .env.example
-│
-├── docs/                        # Documentation
-│   ├── DATABASE_SCHEMA.md
-│   ├── CONVERSATION_FLOW.md
-│   ├── API.md
-│   ├── ARCHITECTURE.md
-│   ├── DEPLOYMENT.md
-│   └── DEMO_SCRIPT.md
-│
-└── README.md                    # This file
+
+frontend/
+├── landing
+├── chatbot
+├── qualification
+├── dashboard
+├── analytics
+└── shared
+
+backend/
+├── lead
+├── scoring
+├── ai-analyst
+├── dashboard
+├── uploads
+├── auth
+└── health
+
+database/
+├── migrations
+└── schema
 ```
 
-## Getting Started
+---
 
-### Prerequisites
-- Node.js 20+
-- PostgreSQL 16+
-- npm
+# Environment Variables
 
-### Clone & Install
-```bash
-git clone <repo-url> venturizer-lead-platform
-cd venturizer-lead-platform
+## Backend
 
-# Backend
-cd backend
-cp .env.example .env
-npm install
-npm run migrate
-npm run dev
-
-# Frontend (in a new terminal)
-cd frontend
-cp .env.example .env
-npm install
-npm run dev
-```
-
-### Environment Variables
-
-#### Backend (`.env`)
-```
-NODE_ENV=development
+```env
+NODE_ENV=production
 PORT=3001
-DATABASE_URL=postgresql://user:pass@localhost:5432/venturizer
-DATABASE_SSL=false
-CORS_ORIGIN=http://localhost:5173
-API_KEY=your-api-key-min-8-chars
-LOG_LEVEL=info
+
+DATABASE_URL=
+DATABASE_SSL=true
+
+API_KEY=
+
+CORS_ORIGIN=
+
 STORAGE_DRIVER=disk
 UPLOAD_PATH=./uploads
+
+GROQ_API_KEY=
 ```
 
-#### Frontend (`.env`)
+## Frontend
+
+```env
+VITE_API_URL=
 ```
-VITE_API_URL=/api/v1
-```
 
-### Scripts
+---
 
-| Command | Directory | Description |
-|---|---|---|
-| `npm run dev` | both | Start development servers with hot reload |
-| `npm run build` | both | TypeScript compile + Vite build (frontend) |
-| `npm run test` | backend | Run test suite (97 tests) |
-| `npm run lint` | frontend | Run ESLint |
-| `npm run migrate` | backend | Run database migrations |
+# Local Setup
 
-### Run Tests
+## Clone Repository
+
 ```bash
-cd backend && npm test
-# 97 tests pass: 22 scoring + 35 lead + 23 dashboard + 17 upload
+git clone <repository-url>
+cd venturizer-lead-platform
 ```
 
-## Scoring Rules
+## Backend
 
-### Founder (Rule-Based, 80% Weight)
-| Dimension | Weight | Key Signals |
-|---|---|---|
-| Founder Experience | 15 | Prior startup, industry years |
-| Industry Knowledge | 10 | Problem clarity, customer clarity |
-| MVP Readiness | 20 | Idea → Prototype → MVP → Launched → Revenue |
-| Traction | 20 | Users, revenue, growth rate |
-| Team Strength | 15 | Team size, co-founder |
-| Validation | 10 | Revenue + user signals |
-| Funding Readiness | 10 | Commitment, funding ask |
+```bash
+cd backend
 
-### Investor (Rule-Based, 80% Weight)
-| Dimension | Weight | Key Signals |
-|---|---|---|
-| Active Investor | 20 | Actively investing, looking for deals |
-| Cheque Size | 20 | Max cheque range |
-| Deployment Timeline | 15 | Speed of capital deployment |
-| Portfolio Quality | 15 | Portfolio company count |
-| Sector Match | 15 | Number of focus sectors |
-| Value Add | 15 | Value-add description richness |
+npm install
 
-### AI Analyst (Qualitative, 20% Weight)
-An asynchronous background worker using Groq (Llama 3) evaluates the free-text responses of each lead to determine:
-- Problem clarity, differentiation, and execution confidence for Founders.
-- Value-add venture potential for Investors.
+npm run migrate
 
-### Buckets
-| Bucket | Score | Action |
-|---|---|---|
-| Hot | 80–100 | Schedule intro call within 24h |
-| Good | 60–79 | Nurture with weekly check-ins |
-| Maybe | 40–59 | Revisit in 30 days |
-| Low | 0–39 | Low priority — monitor |
+npm run dev
+```
 
-## API Endpoints
+Backend runs on:
 
-Base URL: `/api/v1`
+```text
+http://localhost:3001
+```
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/lead/start` | — | Start qualification flow |
-| POST | `/lead/answer` | — | Submit single answer |
-| POST | `/lead/submit` | — | Finalize + persist lead |
-| GET | `/lead/:id` | — | Get lead by ID |
-| POST | `/lead/upload` | — | Upload PDF file |
-| GET | `/dashboard/summary` | API key | Dashboard stats |
-| GET | `/dashboard/leads` | API key | List leads (paginated) |
-| GET | `/dashboard/leads/:id` | API key | Lead detail |
-| PATCH | `/dashboard/leads/:id/status` | API key | Update status |
-| POST | `/auth/login` | — | Authenticate |
+## Frontend
 
-Full API documentation at [`docs/API.md`](docs/API.md).
+```bash
+cd frontend
 
-## Design Decisions
+npm install
 
-- **No chatbot UI**: Clean form-based flow with one question at a time — avoids generic chatbot aesthetic while maintaining conversational feel.
-- **Hybrid AI Scoring**: A deterministic rule-based engine computes 80% of the score for immediate speed and auditability, while a background Groq Llama 3 AI Analyst computes the remaining 20% based on qualitative free-text analysis.
-- **Smooth Scrolling**: Lenis is used on the Landing Page to create a premium, fluid scrolling experience expected in top-tier venture capital websites.
-- **useReducer state machine**: Local state management without Redux/Zustand — sufficient for single-question-at-a-time flow
-- **Code-split analytics**: Recharts (420KB) lazy-loaded only on Analytics page
-- **Local-first persistence**: Session saved to localStorage with 300ms debounce — survives page refresh
-- **Accessibility**: `aria-hidden` on decorative icons, `aria-label` on interactive elements, `role="alert"` on errors, `prefers-reduced-motion` support
+npm run dev
+```
 
-## License
+Frontend runs on:
 
-Internal — Venturizer.
+```text
+http://localhost:5173
+```
+
+---
+
+# Scripts
+
+| Command         | Description              |
+| --------------- | ------------------------ |
+| npm run dev     | Start development server |
+| npm run build   | Production build         |
+| npm run lint    | Lint project             |
+| npm run migrate | Run database migrations  |
+| npm run test    | Execute test suite       |
+
+---
+
+# API Overview
+
+Base URL:
+
+```text
+/api/v1
+```
+
+## Qualification
+
+```http
+POST /lead/start
+POST /lead/answer
+POST /lead/submit
+GET  /lead/:id
+```
+
+## Uploads
+
+```http
+POST /lead/upload
+```
+
+## Dashboard
+
+```http
+GET    /dashboard/summary
+GET    /dashboard/leads
+GET    /dashboard/leads/:id
+PATCH  /dashboard/leads/:id/status
+```
+
+## Authentication
+
+```http
+POST /auth/login
+```
+
+---
+
+# Design Decisions
+
+## Why Conversational Qualification?
+
+Traditional forms create abandonment and poor-quality responses.
+
+A guided conversation:
+
+* Improves completion rates
+* Collects richer context
+* Feels more natural
+* Enables dynamic branching
+
+---
+
+## Why Hybrid Scoring?
+
+Pure AI systems can be inconsistent.
+
+Pure rule systems miss qualitative insight.
+
+The hybrid approach provides:
+
+* Explainability
+* Auditability
+* Consistency
+* Venture-style qualitative evaluation
+
+---
+
+## Why an ERP Dashboard?
+
+Qualification is only useful if operators can act on it.
+
+The dashboard enables:
+
+* Review
+* Filtering
+* Prioritization
+* Analytics
+* Decision support
+
+---
+
+# Assignment Requirements Coverage
+
+✅ Founder qualification flow
+
+✅ Investor qualification flow
+
+✅ 16–20 question conversations
+
+✅ Real-time validation
+
+✅ PostgreSQL persistence
+
+✅ Qualification scoring (0–100)
+
+✅ Dashboard for lead review
+
+✅ Analytics dashboard
+
+✅ Mobile responsive experience
+
+✅ API documentation
+
+✅ Database schema
+
+✅ Deployment
+
+✅ AI-assisted qualification layer
+
+---
+
+# Business Impact
+
+VLIP transforms lead qualification from a manual review process into a scalable venture operations workflow.
+
+Expected benefits:
+
+* Faster lead response times
+* Consistent qualification criteria
+* Reduced operator workload
+* Better prioritization of high-signal opportunities
+* Improved visibility into inbound pipeline health
+
+---
+
+# Future Improvements (V2)
+
+* Automated email outreach
+* CRM integrations (HubSpot, Salesforce)
+* Calendar scheduling
+* Multi-operator workflows
+* Venture matching engine
+* Founder-investor recommendation system
+* RAG-based pitch deck analysis
+* Advanced cohort analytics
+
+---
+
+# Deliverables
+
+Included:
+
+✅ GitHub Repository
+
+✅ README Documentation
+
+✅ Database Schema
+
+✅ API Documentation
+
+✅ Conversation Flow
+
+✅ Qualification Engine
+
+✅ ERP Dashboard
+
+✅ Analytics Dashboard
+
+✅ Deployment
+
+✅ Demo Presentation
+
+---
+
+# License
+
+Built as part of the Venturizer Full-Stack Engineering Assignment.
