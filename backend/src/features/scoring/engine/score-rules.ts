@@ -76,7 +76,7 @@ const experience: ScoreRule = {
   weight: 10,
   evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     if (version !== "legacy") {
-      return { score: 0, maxScore: 0, rationale: "Excluded in V2.1+", excluded: true };
+      return { score: 0, maxScore: 0, rationale: "Excluded from scoring", excluded: true };
     }
     const prevStartup = answers.prev_startup === "yes" ? 4 : 0;
     const years = Math.max(num(answers.industry_experience), 0);
@@ -295,7 +295,7 @@ const teamStrength: ScoreRule = {
   weight: 10,
   evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     if (version !== "legacy") {
-      return { score: 0, maxScore: 0, rationale: "Excluded in V2.1+", excluded: true };
+      return { score: 0, maxScore: 0, rationale: "Excluded from scoring", excluded: true };
     }
     const teamSize = num(answers.team_size);
     const hasCoFounder = answers.has_cofounder === "yes";
@@ -481,7 +481,7 @@ const deploymentTimeline: ScoreRule = {
   weight: 15,
   evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
     if (version !== "legacy") {
-      return { score: 0, maxScore: 0, rationale: "Excluded in V2.1+", excluded: true };
+      return { score: 0, maxScore: 0, rationale: "Excluded from scoring", excluded: true };
     }
     const timeline = str(answers.deployment_timeline);
     const timelineScores: Record<string, number> = {
@@ -540,6 +540,9 @@ const valueAdd: ScoreRule = {
   dimension: "value_add",
   weight: 15,
   evaluator(answers: Record<string, unknown>, version: FlowVersion): ScoreResult {
+    if (version !== "legacy") {
+      return { score: 0, maxScore: 0, rationale: "Evaluated by AI Analyst", excluded: true };
+    }
     const description = str(answers.value_add);
     const length = description.length;
 

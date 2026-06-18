@@ -61,13 +61,39 @@ export function calculateWithRules(
   const rawTotal = includedDimensions.reduce((sum, d) => sum + d.score, 0);
   const rawMaxTotal = includedDimensions.reduce((sum, d) => sum + d.maxScore, 0);
 
-  // Normalize to 100
-  let total = 0;
-  if (rawMaxTotal > 0) {
-    total = Math.round((rawTotal / rawMaxTotal) * 100);
+  let multiplier = 1;
+  if (rawMaxTotal > 0 && rawMaxTotal < 100) {
+    multiplier = 100 / rawMaxTotal;
   }
 
-  const maxTotal = 100; // Normalized total is out of 100
+  // Scale the included dimensions so their individual max scores visibly sum to 100
+  let accumulatedMax = 0;
+  let accumulatedScore = 0;
+  
+  for (let i = 0; i < includedDimensions.length; i++) {
+    const d = includedDimensions[i];
+    
+    // Scale maxScore
+    let scaledMax = Math.round(d.maxScore * multiplier);
+    // Adjust last element to perfectly hit 100 to avoid rounding gaps
+    if (i === includedDimensions.length - 1 && rawMaxTotal > 0) {
+      scaledMax = 100 - accumulatedMax;
+    }
+    
+    // Scale achieved score proportionally
+    const achievedFraction = d.maxScore > 0 ? d.score / d.maxScore : 0;
+    const scaledScore = Math.round(scaledMax * achievedFraction);
+    
+    d.maxScore = scaledMax;
+    d.weight = scaledMax;
+    d.score = scaledScore;
+    
+    accumulatedMax += scaledMax;
+    accumulatedScore += scaledScore;
+  }
+
+  const total = rawMaxTotal > 0 ? accumulatedScore : 0;
+  const maxTotal = rawMaxTotal > 0 ? 100 : 0;
 
   const bucket = getBucket(total);
 
