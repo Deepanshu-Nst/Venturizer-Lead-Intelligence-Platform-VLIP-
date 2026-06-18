@@ -1,6 +1,7 @@
 import type { ScoreRule, ScoreOutput, ScoreDimension, ScoreBucket } from "./score-types.js";
 import { getRules } from "./score-rules.js";
 import { detectSubmissionVersion, normalizeAnswersForScoring } from "./version-detector.js";
+import { getStageWeight } from "./stage-weights.js";
 
 export function getBucket(score: number): ScoreBucket {
   if (score >= 80) return "hot";
@@ -44,15 +45,44 @@ export function calculateWithRules(
 
   const dimensions: ScoreDimension[] = [];
 
+  const isFounder = "startup_name" in answers;
+  const stage = String(answers.mvp_status || "idea");
+  const type = isFounder ? "founder" : "investor";
+
   for (const rule of rules) {
     const result = rule.evaluator(answers, version);
+    
+    // Apply Stage-Aware Weight overrides
+    let activeWeight = rule.weight;
+    let activeMaxScore = result.maxScore;
+    let activeScore = result.score;
+    let isExcluded = result.excluded;
+    let activeRationale = result.rationale;
+    
+    const stageWeight = getStageWeight(type, rule.dimension, stage);
+    if (stageWeight !== undefined) {
+      activeWeight = stageWeight;
+      
+      if (activeWeight === 0) {
+        isExcluded = true;
+        activeRationale = "Excluded from scoring (not applicable for this stage)";
+        activeMaxScore = 0;
+        activeScore = 0;
+      } else {
+        // If we have a new weight, we must scale the score fraction to this new weight
+        const fraction = result.maxScore > 0 ? result.score / result.maxScore : 0;
+        activeScore = fraction * activeWeight;
+        activeMaxScore = activeWeight;
+      }
+    }
+
     dimensions.push({
       dimension: rule.dimension,
-      score: Math.round(result.score),
-      weight: Math.round(rule.weight),
-      maxScore: Math.round(result.maxScore),
-      rationale: result.rationale,
-      excluded: result.excluded,
+      score: Math.round(activeScore),
+      weight: Math.round(activeWeight),
+      maxScore: Math.round(activeMaxScore),
+      rationale: activeRationale,
+      excluded: isExcluded,
     });
   }
 
@@ -62,7 +92,7 @@ export function calculateWithRules(
   const rawMaxTotal = includedDimensions.reduce((sum, d) => sum + d.maxScore, 0);
 
   let multiplier = 1;
-  if (rawMaxTotal > 0 && rawMaxTotal < 100) {
+  if (rawMaxTotal > 0) {
     multiplier = 100 / rawMaxTotal;
   }
 
